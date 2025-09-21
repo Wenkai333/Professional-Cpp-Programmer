@@ -1,0 +1,54 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Main",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/src/main",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Build Debug",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Debug Current File",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/src/${fileBasenameNoExtension}",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Build Debug",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Debug Tests",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/tests/unit_tests",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Build Debug",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Debug with Arguments",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/src/main",
+            "args": ["${input:programArgs}"],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Build Debug",
+            "console": "integratedTerminal"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "programArgs",
+            "description": "Program arguments",
+            "default": "",
+            "type": "promptString"
+        }
+    ]
+}
