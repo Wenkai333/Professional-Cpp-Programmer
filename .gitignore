@@ -1,0 +1,29 @@
+# Build directories
+**/build/
+**/cmake-build-*/
+**/*.build/
+
+# Compiled files
+**/*.o
+**/*.obj
+**/*.exe
+**/*.out
+**/*.app
+
+# Debug files
+**/*.dSYM/
+
+# IDE files
+**/.vscode/settings.json.bak
+**/.idea/
+**/*.swp
+**/*.swo
+
+# OS files
+.DS_Store
+**/.DS_Store
+
+# Temporary files
+**/*.tmp
+**/*.temp
+**/*.log
