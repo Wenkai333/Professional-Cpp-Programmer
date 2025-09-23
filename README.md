@@ -1,6 +1,6 @@
 # Professional C++ Programmer
 
-**My structured journey to mastering professional C++ development.**
+**My structured journey to move beyond basic C++ usage and master professional development practices.**
 
 ## 🎯 Learning Goals
 
@@ -23,7 +23,8 @@ Extra:
 ## 📈 Current Progress
 
 ### Tier 1: Core Professional Competencies (In Progress)
-- [x] Development environment setup (Explore Linux/macOS development environments.) 
+- [x] Development environment setup (Explore Linux/macOS development environments)
+- [x] Git/Github knowledge recall and environment setup
 - [x] C++ project template creation
 - [ ] **Memory Management & Resource Handling** ← `Current Focus`
   - [ ] RAII (Resource Acquisition Is Initialization)
