@@ -10,11 +10,29 @@
     "C_Cpp.suggestSnippets": true,
     "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
     
-    // Formatting
+    // Formatting (Updated section)
     "C_Cpp.clang_format_style": "file",
     "editor.formatOnSave": true,
     "editor.formatOnPaste": true,
     "editor.formatOnType": false,
+    
+    // Language-specific formatting (Add this section)
+    "[cpp]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools",
+        "editor.formatOnSave": true
+    },
+    "[hpp]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools",
+        "editor.formatOnSave": true
+    },
+    "[h]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools",
+        "editor.formatOnSave": true
+    },
+    "[c]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools",
+        "editor.formatOnSave": true
+    },
     
     // File associations
     "files.associations": {
