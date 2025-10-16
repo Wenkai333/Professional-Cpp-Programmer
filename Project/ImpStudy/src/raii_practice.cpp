@@ -26,78 +26,94 @@
 
 class FileHandle {
 private:
-    FILE* file_;
+    std::fstream file_;
     std::string filename_;
+    std::ios::openmode mode_;
     bool is_open_;
 
 public:
     // TODO: Implement constructor that opens file
     // Should throw std::runtime_error if file cannot be opened
-    explicit FileHandle(const std::string& filename, const char* mode = "r") {
-        // Your implementation here
-        // Hints:
-        // - Use fopen() to open the file
-        // - Store filename for error messages
-        // - Set is_open_ appropriately
-        // - Print success message: "📁 File opened: " + filename
+    explicit FileHandle(const std::string& filename,
+                        std::ios::openmode mode = std::ios::in | std::ios::out)
+        : file_(filename, mode), filename_(filename), mode_(mode), is_open_(false) {
+        is_open_ = file_.is_open();
+        if (!is_open_) {
+            if (mode_ & std::ios::out) {
+                std::ofstream creator(filename);
+                creator.close();
+            }
+            file_.open(filename, mode);
+            is_open_ = file_.is_open();
+            if (!is_open_) {
+                throw std::runtime_error("Failed to open: " + filename);
+            }
+        }
+        std::cout << "📁 File opened: " << filename_ << "\n";
     }
 
     // TODO: Implement destructor that closes file
     ~FileHandle() {
-        // Your implementation here
-        // Hints:
-        // - Check if file is open before closing
-        // - Use fclose() to close the file
-        // - Print cleanup message: "🔒 File closed: " + filename
+        if (is_open_) {
+            file_.close();
+        }
     }
 
     // TODO: Implement copy constructor (should it be allowed?)
-    FileHandle(const FileHandle& other) {
-        // Your implementation here
-        // Think: Should files be copyable? What are the implications?
-    }
+    FileHandle(const FileHandle& other) = delete;
 
     // TODO: Implement copy assignment (should it be allowed?)
-    FileHandle& operator=(const FileHandle& other) {
-        // Your implementation here
-    }
+    FileHandle& operator=(const FileHandle& other) = delete;
 
     // TODO: Implement move constructor
     FileHandle(FileHandle&& other) noexcept {
-        // Your implementation here
-        // Hints:
-        // - Transfer ownership of file handle
-        // - Leave 'other' in valid but unspecified state
+        file_ = std::move(other.file_);
+        filename_ = other.filename_;
+        mode_ = other.mode_;
+        is_open_ = other.is_open_;
+
+        other.is_open_ = false;
     }
 
     // TODO: Implement move assignment
     FileHandle& operator=(FileHandle&& other) noexcept {
-        // Your implementation here
+        if (this != &other) {
+            if (is_open_) {
+                file_.close();
+            }
+            file_ = std::move(other.file_);
+            filename_ = other.filename_;
+            mode_ = other.mode_;
+            is_open_ = other.is_open_;
+
+            other.is_open_ = false;
+        }
+        return *this;
     }
 
     // TODO: Implement write method
     void write(const std::string& data) {
-        // Your implementation here
-        // Hints:
-        // - Check if file is open
-        // - Use fprintf() or fwrite()
-        // - Throw exception if file is not open
+        if (!is_open_ && !(mode_ & std::ios::out)) {
+            throw std::runtime_error("Failed to write: " + filename_);
+        }
+
+        file_ << data << "\n";
     }
 
     // TODO: Implement read method
     std::string readLine() {
-        // Your implementation here
-        // Hints:
-        // - Check if file is open
-        // - Use fgets() to read a line
-        // - Return empty string if EOF or error
+        if (!is_open_ && !(mode_ & std::ios::in)) {
+            throw std::runtime_error("Failed to read: " + filename_);
+        }
 
-        return "";
+        std::string data;
+        file_ >> data;
+        return data;
     }
 
     // TODO: Implement flush method
     void flush() {
-        // Your implementation here
+        file_.flush();
     }
 
     bool isOpen() const {
@@ -320,6 +336,7 @@ public:
         // - Record start time using std::chrono::steady_clock::now()
         // - Store operation name
         // - Print start message: "⏱️ Timer started: " + operation_name
+        stopped_ = false;
     }
 
     // TODO: Implement destructor that prints elapsed time
@@ -375,6 +392,7 @@ public:
         // - Simulate connection process
         // - Print connection message
         // - Throw exception if port is invalid (< 1 or > 65535)
+        port_ = -1;
     }
 
     // TODO: Implement destructor that closes socket
@@ -443,14 +461,14 @@ void test_file_handle() {
     std::cout << "\n=== Testing FileHandle ===\n";
     try {
         {
-            FileHandle file("test_output.txt", "w");
+            FileHandle file("./temporary/test_output.txt");
             file.write("Hello, RAII!\n");
             file.write("Testing file wrapper.\n");
             file.flush();
         }  // File should be automatically closed here
 
         {
-            FileHandle file("test_output.txt", "r");
+            FileHandle file("./temporary/test_output.txt");
             std::string line = file.readLine();
             while (!line.empty()) {
                 std::cout << "Read: " << line;
@@ -551,7 +569,7 @@ int main() {
 
     // Uncomment these tests as you implement each class:
 
-    // test_file_handle();
+    test_file_handle();
     // test_dynamic_array();
     // test_database_connection();
     // test_scoped_timer();
