@@ -137,93 +137,101 @@ private:
 
 public:
     // TODO: Implement constructor with initial capacity
-    explicit DynamicArray(size_t initial_capacity = 10) {
-        // Your implementation here
-        // Hints:
-        // - Allocate memory using new T[capacity]
-        // - Initialize size_ and capacity_
-        // - Print allocation message
+    explicit DynamicArray(size_t initial_capacity = 10)
+        : data_(nullptr), size_(0), capacity_(initial_capacity) {
+        data_ = new T[initial_capacity];
     }
 
     // TODO: Implement destructor
     ~DynamicArray() {
-        // Your implementation here
-        // Hints:
-        // - Use delete[] to free the array
-        // - Print deallocation message
+        if (data_) {
+            delete[] data_;
+        }
     }
 
     // TODO: Implement copy constructor
     DynamicArray(const DynamicArray& other) {
-        // Your implementation here
-        // Hints:
-        // - Allocate new memory
-        // - Copy all elements from other
-        // - Deep copy, not shallow copy!
+        size_ = other.size_;
+        capacity_ = other.capacity_;
+        data_ = new T[capacity_];
+        for (size_t i = 0; i < size_; i++) {
+            data_[i] = other.data_[i];
+        }
     }
 
     // TODO: Implement copy assignment
     DynamicArray& operator=(const DynamicArray& other) {
-        // Your implementation here
-        // Hints:
-        // - Check for self-assignment
-        // - Clean up current resources
-        // - Allocate new memory and copy
-
+        if (this != &other) {
+            delete[] data_;
+            size_ = other.size_;
+            capacity_ = other.capacity_;
+            data_ = new T[capacity_];
+            for (size_t i = 0; i < size_; i++) {
+                data_[i] = other.data_[i];
+            }
+        }
         return *this;
     }
 
     // TODO: Implement move constructor
-    DynamicArray(DynamicArray&& other) noexcept {
-        // Your implementation here
-        // Hints:
-        // - Transfer ownership of data
-        // - Reset other's pointers to nullptr
+    DynamicArray(DynamicArray&& other) noexcept
+        : data_(other.data_),  // ✅ Initialize properly
+          size_(other.size_),
+          capacity_(other.capacity_) {
+        other.data_ = nullptr;
+        other.size_ = 0;
+        other.capacity_ = 0;
     }
 
     // TODO: Implement move assignment
     DynamicArray& operator=(DynamicArray&& other) noexcept {
-        // Your implementation here
+        if (this != &other) {
+            delete[] data_;
 
+            size_ = other.size_;
+            capacity_ = other.capacity_;
+            data_ = other.data_;
+
+            other.data_ = nullptr;
+        }
         return *this;
     }
 
     // TODO: Implement push_back method
     void push_back(const T& value) {
-        // Your implementation here
-        // Hints:
-        // - Check if resize is needed
-        // - Double capacity when full
-        // - Use placement new or copy assignment
+        if (size_ >= capacity_) {
+            resize(capacity_ * 2);
+        }
+        data_[size_++] = value;
     }
 
     // TODO: Implement operator[] for access
     T& operator[](size_t index) {
-        // Your implementation here
-        // Hints:
-        // - Check bounds (throw std::out_of_range if invalid)
-        // - Return reference to element
-
-        static T dummy{};  // Remove this line in your implementation
-        return dummy;
+        if (size_ <= index) {
+            throw std::out_of_range("Index " + std::to_string(index) +
+                                    " out of range (size: " + std::to_string(size_) + ")");
+        }
+        return data_[index];
     }
 
     // TODO: Implement const version of operator[]
     const T& operator[](size_t index) const {
-        // Your implementation here
-
-        static T dummy{};  // Remove this line in your implementation
-        return dummy;
+        if (size_ <= index) {
+            throw std::out_of_range("Index " + std::to_string(index) +
+                                    " out of range (size: " + std::to_string(size_) + ")");
+        }
+        return data_[index];
     }
 
     // TODO: Implement resize method
     void resize(size_t new_capacity) {
-        // Your implementation here
-        // Hints:
-        // - Allocate new memory
-        // - Copy existing elements
-        // - Delete old memory
-        // - Update pointers and capacity
+        capacity_ = new_capacity;
+        T* new_arr = new T[capacity_];
+        for (size_t i = 0; i < size_; i++) {
+            new_arr[i] = data_[i];
+        }
+        delete[] data_;
+        data_ = new_arr;
     }
 
     size_t size() const {
@@ -570,7 +578,7 @@ int main() {
     // Uncomment these tests as you implement each class:
 
     test_file_handle();
-    // test_dynamic_array();
+    test_dynamic_array();
     // test_database_connection();
     // test_scoped_timer();
     // test_socket();
