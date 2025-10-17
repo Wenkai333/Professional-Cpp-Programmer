@@ -1,0 +1,4 @@
+Hello, RAII!
+
+Testing file wrapper.
+

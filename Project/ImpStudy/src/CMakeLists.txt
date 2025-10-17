@@ -1,5 +1,8 @@
 # Main executable
 add_executable(main main.cpp)
 
+# Add the RAII practice executable
+add_executable(raii_practice raii_practice.cpp)
+
 # Link threading library
 target_link_libraries(main PRIVATE Threads::Threads)
