@@ -411,13 +411,15 @@ private:
 
 public:
     // TODO: Implement constructor that starts timing
-    explicit ScopedTimer(const std::string& operation_name) {
+    explicit ScopedTimer(const std::string& operation_name)
+        : operation_name_(operation_name), stopped_(false) {
         // Your implementation here
         // Hints:
         // - Record start time using std::chrono::steady_clock::now()
         // - Store operation name
         // - Print start message: "⏱️ Timer started: " + operation_name
-        stopped_ = false;
+        start_time_ = std::chrono::steady_clock::now();
+        std::cout << "⏱️ Timer started: " + operation_name << std::endl;
     }
 
     // TODO: Implement destructor that prints elapsed time
@@ -427,6 +429,7 @@ public:
         // - Calculate elapsed time
         // - Print result: "⏰ Timer '" + name + "' finished: X ms"
         // - Use std::chrono::duration_cast<std::chrono::milliseconds>
+        stop();
     }
 
     // TODO: Implement manual stop method
@@ -436,14 +439,20 @@ public:
         // - Only stop if not already stopped
         // - Print elapsed time manually
         // - Set stopped_ flag to prevent double-stopping
+        if (!stopped_) {
+            std::cout << "⏰ Timer '" + operation_name_ + "' finished:" << getElapsedMs() << " ms"
+                      << std::endl;
+            stopped_ = true;  // Mark as stopped
+        }
     }
 
     // TODO: Implement elapsed time getter
     long long getElapsedMs() const {
         // Your implementation here
         // Return elapsed time in milliseconds
-
-        return 0;
+        auto end = std::chrono::steady_clock::now();
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start_time_);
+        return ms.count();
     }
 
     // Non-copyable, non-movable (timers are tied to specific scope)
@@ -612,7 +621,7 @@ void test_scoped_timer() {
             ScopedTimer timer("Heavy computation");
 
             // Simulate some work
-            int sum = 0;
+            long long sum = 0;
             for (int i = 0; i < 1000000; ++i) {
                 sum += i;
             }
@@ -653,7 +662,7 @@ int main() {
     test_file_handle();
     test_dynamic_array();
     test_database_connection();
-    // test_scoped_timer();
+    test_scoped_timer();
     // test_socket();
 
     std::cout << "\n=== Instructions ===\n";
