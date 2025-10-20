@@ -16,6 +16,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <random>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -258,7 +259,8 @@ private:
 
 public:
     // TODO: Implement constructor that establishes connection
-    explicit DatabaseConnection(const std::string& conn_str) {
+    explicit DatabaseConnection(const std::string& conn_str)
+        : connection_string_(conn_str), is_connected_(false), connection_id_(0) {
         // Your implementation here
         // Hints:
         // - Simulate connection establishment
@@ -266,6 +268,23 @@ public:
         // - Set is_connected_ to true
         // - Print connection message: "🔌 Database connected [ID: X]: " + conn_str
         // - Simulate potential connection failure (throw exception 10% of the time)
+
+        auto gen_random = []() -> int {
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<> dis(1, 100);
+            return dis(gen);
+        };
+        const int rate_to_fail = gen_random();
+
+        if (rate_to_fail <= 10) {
+            throw std::runtime_error("Failed to connect Database: " + connection_string_);
+        }
+
+        connection_id_ = next_id_++;
+        is_connected_ = true;
+
+        std::cout << "🔌 Database connected [ID: X]: " + connection_string_ << std::endl;
     }
 
     // TODO: Implement destructor that closes connection
@@ -275,6 +294,11 @@ public:
         // - Check if connected before closing
         // - Print disconnection message
         // - Set is_connected_ to false
+
+        if (is_connected_) {
+            std::cout << "🔌 Database disconnected [ID: X]: " + connection_string_ << std::endl;
+            is_connected_ = false;
+        }
     }
 
     // TODO: Should database connections be copyable? Implement accordingly
@@ -282,14 +306,44 @@ public:
     DatabaseConnection& operator=(const DatabaseConnection& other) = delete;
 
     // TODO: Implement move constructor
-    DatabaseConnection(DatabaseConnection&& other) noexcept {
-        // Your implementation here
+    DatabaseConnection(DatabaseConnection&& other) noexcept
+        : connection_string_(std::move(other.connection_string_)),
+          is_connected_(other.is_connected_),
+          connection_id_(other.connection_id_) {
+        // Reset the moved-from object
+        other.is_connected_ = false;
+        other.connection_id_ = 0;
+        other.connection_string_.clear();
+
+        if (is_connected_) {
+            std::cout << "📦 Database connection moved [ID: " << connection_id_ << "]" << std::endl;
+        }
     }
 
     // TODO: Implement move assignment
     DatabaseConnection& operator=(DatabaseConnection&& other) noexcept {
-        // Your implementation here
+        if (this != &other) {
+            // Close current connection if open
+            if (is_connected_) {
+                std::cout << "🔒 Database disconnected [ID: " << connection_id_
+                          << "] (during move assignment)" << std::endl;
+            }
 
+            // Transfer ownership
+            connection_string_ = std::move(other.connection_string_);
+            is_connected_ = other.is_connected_;
+            connection_id_ = other.connection_id_;
+
+            // Reset the moved-from object
+            other.is_connected_ = false;
+            other.connection_id_ = 0;
+            other.connection_string_.clear();
+
+            if (is_connected_) {
+                std::cout << "📦 Database connection move-assigned [ID: " << connection_id_ << "]"
+                          << std::endl;
+            }
+        }
         return *this;
     }
 
@@ -300,19 +354,38 @@ public:
         // - Check if connected
         // - Print query execution message
         // - Simulate query failure for "DROP" commands
+        if (!is_connected_) {
+            throw std::runtime_error("Cannot execute query: Database not connected");
+        }
+
+        // Simulate query failure for dangerous operations
+        if (query.find("DROP") != std::string::npos) {
+            throw std::runtime_error("Query failed: DROP operations are not allowed");
+        }
+
+        std::cout << "🔍 Executing query [ID: " << connection_id_ << "]: " << query << std::endl;
     }
 
     // TODO: Implement transaction methods
     void beginTransaction() {
-        // Your implementation here
+        if (!is_connected_) {
+            throw std::runtime_error("Cannot begin transaction: Database not connected");
+        }
+        std::cout << "🚀 Transaction started [ID: " << connection_id_ << "]" << std::endl;
     }
 
     void commitTransaction() {
-        // Your implementation here
+        if (!is_connected_) {
+            throw std::runtime_error("Cannot commit transaction: Database not connected");
+        }
+        std::cout << "✅ Transaction committed [ID: " << connection_id_ << "]" << std::endl;
     }
 
     void rollbackTransaction() {
-        // Your implementation here
+        if (!is_connected_) {
+            throw std::runtime_error("Cannot rollback transaction: Database not connected");
+        }
+        std::cout << "↩️ Transaction rolled back [ID: " << connection_id_ << "]" << std::endl;
     }
 
     bool isConnected() const {
@@ -579,7 +652,7 @@ int main() {
 
     test_file_handle();
     test_dynamic_array();
-    // test_database_connection();
+    test_database_connection();
     // test_scoped_timer();
     // test_socket();
 
