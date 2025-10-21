@@ -19,6 +19,7 @@
 #include <random>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <vector>
 
 // =============================================================================
@@ -475,14 +476,27 @@ private:
 
 public:
     // TODO: Implement constructor that creates and connects socket
-    Socket(const std::string& address, int port) {
+    Socket(const std::string& address, int port) : address_(address), port_(port) {
         // Your implementation here
         // Hints:
         // - Simulate socket creation (use random number as socket_fd_)
         // - Simulate connection process
         // - Print connection message
         // - Throw exception if port is invalid (< 1 or > 65535)
-        port_ = -1;
+        auto gen_random = []() -> int {
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<> dis(1, 100);
+            return dis(gen);
+        };
+        const int socket_fd = gen_random();
+
+        if (port_ < 1 || port_ > 65535) {
+            throw std::runtime_error("Port is invalid!");
+        }
+        socket_fd_ = socket_fd;
+        is_connected_ = true;
+        std::cout << "Connected [: " << address_ << "]" << std::endl;
     }
 
     // TODO: Implement destructor that closes socket
@@ -492,6 +506,9 @@ public:
         // - Check if connected before closing
         // - Print socket closure message
         // - Simulate socket cleanup
+        if (is_connected_) {
+            disconnect();
+        }
     }
 
     // TODO: Implement send method
@@ -501,6 +518,10 @@ public:
         // - Check if connected
         // - Print send message with data size
         // - Simulate network delay (optional)
+        if (is_connected_) {
+            std::cout << "Seeding msg [: " << data << "]" << ", size: " << data.size() << std::endl;
+            std::this_thread::sleep_for(std::chrono::microseconds(500));
+        }
     }
 
     // TODO: Implement receive method
@@ -510,13 +531,17 @@ public:
         // - Check if connected
         // - Simulate receiving data
         // - Return simulated response
-
+        if (is_connected_) {
+            return "FeedBack!!!";
+        }
         return "";
     }
 
     // TODO: Implement disconnect method
     void disconnect() {
         // Your implementation here
+        is_connected_ = false;
+        std::cout << "Disconnected [: " << address_ << "]" << std::endl;
     }
 
     bool isConnected() const {
@@ -531,14 +556,47 @@ public:
     Socket& operator=(const Socket&) = delete;
 
     // TODO: Implement move constructor
-    Socket(Socket&& other) noexcept {
-        // Your implementation here
+    Socket(Socket&& other) noexcept
+        : socket_fd_(other.socket_fd_),
+          address_(std::move(other.address_)),
+          port_(other.port_),
+          is_connected_(other.is_connected_) {
+        // Reset moved-from object
+        other.socket_fd_ = -1;
+        other.port_ = 0;
+        other.is_connected_ = false;
+        other.address_.clear();
+
+        if (is_connected_) {
+            std::cout << "📦 Socket moved [FD: " << socket_fd_ << "]" << std::endl;
+        }
     }
 
-    // TODO: Implement move assignment
+    // Move assignment
     Socket& operator=(Socket&& other) noexcept {
-        // Your implementation here
+        if (this != &other) {
+            // Close existing connection if any
+            if (is_connected_) {
+                std::cout << "🔒 Closing existing connection during move assignment" << std::endl;
+                disconnect();
+            }
 
+            // Transfer ownership
+            socket_fd_ = other.socket_fd_;
+            address_ = std::move(other.address_);
+            port_ = other.port_;
+            is_connected_ = other.is_connected_;
+
+            // Reset moved-from object
+            other.socket_fd_ = -1;
+            other.port_ = 0;
+            other.is_connected_ = false;
+            other.address_.clear();
+
+            if (is_connected_) {
+                std::cout << "📦 Socket move-assigned [FD: " << socket_fd_ << "]" << std::endl;
+            }
+        }
         return *this;
     }
 };
@@ -663,7 +721,7 @@ int main() {
     test_dynamic_array();
     test_database_connection();
     test_scoped_timer();
-    // test_socket();
+    test_socket();
 
     std::cout << "\n=== Instructions ===\n";
     std::cout << "1. Implement all TODO methods in each class\n";
