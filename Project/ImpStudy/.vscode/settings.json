@@ -67,7 +67,8 @@
         "typeinfo": "cpp",
         "vector": "cpp",
         "cstddef": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "__config": "cpp"
     },
 
     // CMake integration
