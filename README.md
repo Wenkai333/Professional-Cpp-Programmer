@@ -27,9 +27,9 @@ Extra:
 - [x] Git/Github knowledge recall and environment setup
 - [x] C++ project template creation
 - [ ] **Memory Management & Resource Handling** ← `Current Focus`
-  - [ ] RAII (Resource Acquisition Is Initialization)
-  - [ ] Smart Pointers (unique_ptr, shared_ptr, weak_ptr)
-  - [ ] Move Semantics & Perfect Forwarding
+  - [x] RAII (Resource Acquisition Is Initialization)
+  - [x] Smart Pointers (unique_ptr, shared_ptr, weak_ptr)
+  - [x] Move Semantics & Perfect Forwarding
   - [ ] Custom Allocators
   - [ ] Memory Debugging Tools
 - [ ] Modern C++ Standards (C++11/14/17/20/23)
