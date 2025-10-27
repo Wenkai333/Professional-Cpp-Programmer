@@ -75,56 +75,49 @@ private:
         Pool* next;
     };
 
+    struct PoolState {
+        Block* free_list_ = nullptr;
+        Pool* current_pool_ = nullptr;
+        size_t total_allocated_ = 0;
+        size_t total_deallocated_ = 0;
+
+        ~PoolState() {
+            while (current_pool_) {
+                Pool* next = current_pool_->next;
+                ::operator delete(current_pool_);
+                current_pool_ = next;
+            }
+
+            // Print statistics
+            std::cout << "🏊 PoolAllocator destroyed\n";
+            std::cout << "   Allocated: " << total_allocated_ << "\n";
+            std::cout << "   Deallocated: " << total_deallocated_ << "\n";
+
+            // Check for leaks
+            if (total_allocated_ != total_deallocated_) {
+                std::cout << "⚠️  Memory leak: " << (total_allocated_ - total_deallocated_)
+                          << " objects not freed!\n";
+            }
+        }
+    };
     // TODO: Add member variables
-    Block* free_list_;
-    Pool* current_pool_;
-    size_t total_allocated_;
-    size_t total_deallocated_;
+    std::shared_ptr<PoolState> state_;
 
 public:
     using value_type = T;
 
     // TODO: Implement constructor
-    PoolAllocator() noexcept
-        : free_list_(nullptr), current_pool_(nullptr), total_allocated_(0), total_deallocated_(0) {
-        // Hints:
-        // - Initialize free_list_ to nullptr
-        // - Initialize statistics
-        // - Don't allocate pool yet (lazy initialization)
+    PoolAllocator() noexcept : state_(std::make_shared<PoolState>()) {
         std::cout << "🏊 PoolAllocator created for type: " << typeid(T).name() << "\n";
     }
 
     // TODO: Implement destructor
-    ~PoolAllocator() {
-        // Hints:
-        // - Delete all pools
-        // - Print statistics if desired
-        // - Check for memory leaks (allocated != deallocated)
-        while (current_pool_) {
-            Pool* next = current_pool_->next;
-            ::operator delete(current_pool_);
-            current_pool_ = next;
-        }
-
-        // Print statistics
-        std::cout << "🏊 PoolAllocator destroyed\n";
-        std::cout << "   Allocated: " << total_allocated_ << "\n";
-        std::cout << "   Deallocated: " << total_deallocated_ << "\n";
-
-        // Check for leaks
-        if (total_allocated_ != total_deallocated_) {
-            std::cout << "⚠️  Memory leak: " << (total_allocated_ - total_deallocated_)
-                      << " objects not freed!\n";
-        }
-    }
+    ~PoolAllocator() = default;
 
     // TODO: Implement copy constructor (for rebinding)
     template <typename U>
     PoolAllocator(const PoolAllocator<U, PoolSize>&) noexcept
-        : free_list_(nullptr), current_pool_(nullptr), total_allocated_(0), total_deallocated_(0) {
-        // Hint: Just initialize like default constructor
-        // Pools are not shared between different types
-    }
+        : state_(std::make_shared<PoolState>()) {}
 
     // TODO: Implement allocate
     T* allocate(size_t n) {
@@ -138,13 +131,13 @@ public:
             return static_cast<T*>(::operator new(n * sizeof(T)));
         }
 
-        if (!free_list_) {
+        if (!state_->free_list_) {
             expand_pool();
         }
 
-        Block* new_block = free_list_;
-        free_list_ = free_list_->next;
-        total_allocated_++;
+        Block* new_block = state_->free_list_;
+        state_->free_list_ = state_->free_list_->next;
+        state_->total_allocated_++;
         return reinterpret_cast<T*>(new_block);
     }
 
@@ -162,9 +155,9 @@ public:
             return;
         }
         Block* rm_block = reinterpret_cast<Block*>(ptr);
-        total_deallocated_++;
-        rm_block->next = free_list_;
-        free_list_ = rm_block;
+        state_->total_deallocated_++;
+        rm_block->next = state_->free_list_;
+        state_->free_list_ = rm_block;
     }
 
     // TODO: Implement rebind for different types
@@ -175,15 +168,15 @@ public:
 
     // TODO: Implement statistics methods
     size_t allocated_count() const {
-        return total_allocated_;
+        return state_->total_allocated_;
     }
 
     size_t deallocated_count() const {
-        return total_deallocated_;
+        return state_->total_deallocated_;
     }
 
     size_t current_usage() const {
-        return total_allocated_ - total_deallocated_;
+        return state_->total_allocated_ - state_->total_deallocated_;
     }
 
 private:
@@ -195,15 +188,15 @@ private:
         // 3. Link pool to existing pools (if tracking multiple)
 
         Pool* new_pool = static_cast<Pool*>(::operator new(sizeof(Pool)));
-        new_pool->next = current_pool_;
-        current_pool_ = new_pool;
+        new_pool->next = state_->current_pool_;
+        state_->current_pool_ = new_pool;
 
-        Block* blocks_ptr = reinterpret_cast<Block*>(current_pool_->blocks);
+        Block* blocks_ptr = reinterpret_cast<Block*>(state_->current_pool_->blocks);
         for (size_t i = 0; i < Pool::blocks_per_pool - 1; i++) {
             blocks_ptr[i].next = &blocks_ptr[i + 1];
         }
-        blocks_ptr[Pool::blocks_per_pool - 1].next = free_list_;
-        free_list_ = blocks_ptr;
+        blocks_ptr[Pool::blocks_per_pool - 1].next = state_->free_list_;
+        state_->free_list_ = blocks_ptr;
     }
 };
 
@@ -695,7 +688,7 @@ void test_pool_allocator() {
 
     std::cout << "\n✅ Pool Allocator test complete!\n";
 
-    std::cout << "❌ Implement PoolAllocator first!\n";
+    // std::cout << "❌ Implement PoolAllocator first!\n";
 }
 
 void test_arena_allocator() {
