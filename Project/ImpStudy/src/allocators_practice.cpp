@@ -229,18 +229,20 @@ bool operator!=(const PoolAllocator<T, PoolSize>&, const PoolAllocator<U, PoolSi
 class Arena {
 private:
     // TODO: Add member variables
-    // char* buffer_;        // Pointer to memory block
-    // size_t size_;         // Total size
-    // size_t offset_;       // Current allocation offset
-    // size_t peak_usage_;   // Peak memory usage (statistics)
+    char* buffer_;       // Pointer to memory block
+    size_t size_;        // Total size
+    size_t offset_;      // Current allocation offset
+    size_t peak_usage_;  // Peak memory usage (statistics)
 
 public:
     // TODO: Implement constructor
-    explicit Arena(size_t size) {
+    explicit Arena(size_t size) : size_(size), offset_(0), peak_usage_(0) {
         // Hints:
         // - Allocate buffer_ with new char[size]
         // - Initialize offset_ to 0
         // - Print creation message
+        buffer_ = new char[size];
+        std::cout << "🏟️ Arena created (" << size << " bytes)\n";
     }
 
     // TODO: Implement destructor
@@ -248,6 +250,14 @@ public:
         // Hints:
         // - Delete buffer_
         // - Print destruction message with statistics
+        if (buffer_) {
+            delete[] buffer_;
+        }
+
+        std::cout << "🏟️ Arena destroyed\n";
+        std::cout << "   Total size: " << size_ << " bytes\n";
+        std::cout << "   Peak usage: " << peak_usage_ << " bytes\n";
+        std::cout << "   Utilization: " << (100.0 * peak_usage_ / size_) << "%\n";
     }
 
     // Arena should not be copyable (it owns memory)
@@ -255,6 +265,28 @@ public:
     Arena& operator=(const Arena&) = delete;
 
     // TODO: Implement move constructor and assignment if desired
+    Arena(Arena&& other) noexcept
+        : buffer_(other.buffer_),
+          size_(other.size_),
+          offset_(other.offset_),
+          peak_usage_(other.peak_usage_) {
+        other.buffer_ = nullptr;
+    }
+
+    Arena& operator=(Arena&& other) noexcept {
+        if (this != &other) {
+            if (buffer_) {
+                delete[] buffer_;
+            }
+            buffer_ = other.buffer_;
+            size_ = other.size_;
+            offset_ = other.offset_;
+            peak_usage_ = other.peak_usage_;
+
+            other.buffer_ = nullptr;
+        }
+        return *this;
+    }
 
     // TODO: Implement allocate with alignment
     void* allocate(size_t n, size_t alignment = alignof(std::max_align_t)) {
@@ -265,8 +297,31 @@ public:
         // 4. Update peak_usage_
         // 5. Return pointer to allocated memory
         // 6. Throw std::bad_alloc if not enough space
+        void* ptr = buffer_ + offset_;
+        size_t space = size_ - offset_;
 
-        return nullptr;  // Replace this
+        if (std::align(alignment, n, ptr, space)) {
+            size_t aligned_offset = static_cast<char*>(ptr) - buffer_;
+            offset_ = aligned_offset + n;
+            if (offset_ > peak_usage_) {
+                peak_usage_ = offset_;
+            }
+            // Debug output
+            std::cout << "  📦 Arena allocated " << n << " bytes "
+                      << "(alignment: " << alignment << ", "
+                      << "offset: " << offset_ << ", "
+                      << "available: " << available() << ")\n";
+
+            // Step 5: Return aligned pointer
+            return ptr;
+        }
+
+        // Step 6: Not enough space
+        std::cout << "  ❌ Arena allocation failed!\n"
+                  << "     Requested: " << n << " bytes\n"
+                  << "     Alignment: " << alignment << " bytes\n"
+                  << "     Available: " << space << " bytes\n";
+        throw std::bad_alloc();
     }
 
     // TODO: Implement reset (deallocate all at once)
@@ -274,27 +329,25 @@ public:
         // Hints:
         // - Set offset_ back to 0
         // - Print reset message with how much was used
+        std::cout << "  🔄 Arena reset (was using " << offset_ << " bytes)\n";
+        offset_ = 0;
     }
 
     // TODO: Implement statistics methods
     size_t used() const {
-        // Return current offset_
-        return 0;  // Replace this
+        return offset_;
     }
 
     size_t available() const {
-        // Return size_ - offset_
-        return 0;  // Replace this
+        return size_ - offset_;
     }
 
     size_t peak_usage() const {
-        // Return peak_usage_
-        return 0;  // Replace this
+        return peak_usage_;
     }
 
     size_t total_size() const {
-        // Return size_
-        return 0;  // Replace this
+        return size_;
     }
 };
 
@@ -318,11 +371,7 @@ public:
 
     // TODO: Implement allocate
     T* allocate(size_t n) {
-        // Hints:
-        // - Call arena_->allocate(n * sizeof(T), alignof(T))
-        // - Cast result to T*
-
-        return nullptr;  // Replace this
+        return static_cast<T*>(arena_->allocate(n * sizeof(T), alignof(T)));
     }
 
     // TODO: Implement deallocate
@@ -349,12 +398,12 @@ public:
 template <typename T, typename U>
 bool operator==(const ArenaAllocator<T>& a, const ArenaAllocator<U>& b) noexcept {
     // Hint: Two arena allocators are equal if they use the same arena
-    return false;  // Replace this
+    return a.get_arena() == b.get_arena();  // Replace this
 }
 
 template <typename T, typename U>
 bool operator!=(const ArenaAllocator<T>& a, const ArenaAllocator<U>& b) noexcept {
-    return false;  // Replace this
+    return a.get_arena() != b.get_arena();  // Replace this
 }
 
 // =============================================================================
@@ -696,17 +745,18 @@ void test_arena_allocator() {
     std::cout << "TEST 2: ⭐⭐ Arena Allocator\n";
     std::cout << std::string(60, '=') << "\n";
 
-    // TODO: Uncomment when implemented
-    /*
     {
         Arena arena(1024 * 1024);  // 1MB arena
 
         // First batch of allocations
         {
-            std::vector<int, ArenaAllocator<int>> vec(&arena);
+            // FIX: Create allocator objects properly
+            ArenaAllocator<int> int_alloc(&arena);
+            std::vector<int, ArenaAllocator<int>> vec(int_alloc);
             vec.resize(1000);
 
-            std::list<Entity, ArenaAllocator<Entity>> entities(&arena);
+            ArenaAllocator<Entity> entity_alloc(&arena);
+            std::list<Entity, ArenaAllocator<Entity>> entities(entity_alloc);
             for (int i = 0; i < 100; ++i) {
                 entities.emplace_back(i);
             }
@@ -720,7 +770,8 @@ void test_arena_allocator() {
 
         // Second batch (reuses same memory)
         {
-            std::vector<Particle, ArenaAllocator<Particle>> particles(&arena);
+            ArenaAllocator<Particle> particle_alloc(&arena);
+            std::vector<Particle, ArenaAllocator<Particle>> particles(particle_alloc);
             particles.resize(10000);
 
             std::cout << "After reset, arena used: " << arena.used() << " bytes\n";
@@ -730,9 +781,7 @@ void test_arena_allocator() {
     }
 
     std::cout << "\n✅ Arena Allocator test complete!\n";
-    */
-
-    std::cout << "❌ Implement Arena and ArenaAllocator first!\n";
+    // Removed the "not implemented" message since you've implemented it!
 }
 
 void test_thread_safety() {
@@ -782,8 +831,7 @@ void run_benchmarks() {
 
     std::cout << "\n--- List Operations Benchmark ---\n";
     benchmark_list_operations<std::allocator<int>>("Default allocator");
-    // TODO: Uncomment when implemented
-    // benchmark_list_operations<PoolAllocator<int>>("Pool allocator");
+    benchmark_list_operations<PoolAllocator<int>>("Pool allocator");
 
     std::cout << "\n--- Vector of Entities Benchmark ---\n";
     benchmark_vector_of_entities<std::allocator<Entity>>("Default allocator");
