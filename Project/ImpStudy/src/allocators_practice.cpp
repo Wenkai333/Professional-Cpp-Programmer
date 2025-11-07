@@ -429,36 +429,80 @@ private:
     // 3. Thread-local pools for best performance
 
     union Block {
-        // TODO: Implement like PoolAllocator
+        T element;
+        Block* next;
     };
 
     struct Pool {
-        // TODO: Implement like PoolAllocator
+        static constexpr size_t blocks_per_pool = PoolSize / sizeof(Block);
+        alignas(Block) char blocks[PoolSize];
+        Pool* next;
+    };
+    struct PoolState {
+        // ADD: Mutex for thread-safety
+        std::mutex mutex_;
+
+        Block* free_list_ = nullptr;
+        Pool* current_pool_ = nullptr;
+
+        // CHANGE: Make counters atomic
+        std::atomic<size_t> total_allocated_{0};
+        std::atomic<size_t> total_deallocated_{0};
+
+        ~PoolState() {
+            while (current_pool_) {
+                Pool* next = current_pool_->next;
+                ::operator delete(current_pool_);
+                current_pool_ = next;
+            }
+
+            // Print statistics
+            std::cout << "🏊 PoolAllocator destroyed\n";
+            std::cout << "   Allocated: " << total_allocated_ << "\n";
+            std::cout << "   Deallocated: " << total_deallocated_ << "\n";
+
+            // Check for leaks
+            size_t allocated = total_allocated_.load();
+            size_t deallocated = total_deallocated_.load();
+            if (allocated != deallocated) {
+                std::cout << "⚠️  Memory leak: " << (allocated - deallocated)
+                          << " objects not freed!\n";
+            }
+        }
     };
 
-    // TODO: Add member variables with synchronization
-    // std::mutex mutex_;  // or std::atomic<Block*> for lock-free
-    // Block* free_list_;
-    // Pool* pools_;
-    // std::atomic<size_t> allocated_;
-    // std::atomic<size_t> deallocated_;
+    // Add member variables
+    std::shared_ptr<PoolState> state_;
 
 public:
     using value_type = T;
 
     // TODO: Implement thread-safe constructor
-    ThreadSafePoolAllocator() noexcept {}
+    ThreadSafePoolAllocator() noexcept : state_(std::make_shared<PoolState>()) {
+        std::cout << "🔒 ThreadSafePoolAllocator: " << typeid(T).name() << "\n";
+    }
 
     // TODO: Implement thread-safe destructor
-    ~ThreadSafePoolAllocator() {}
+    ~ThreadSafePoolAllocator() = default;
 
     // TODO: Implement thread-safe allocate
     T* allocate(size_t n) {
-        // Hints:
-        // Option 1 (Simple): Lock mutex, do allocation, unlock
-        // Option 2 (Advanced): Use atomic CAS for lock-free allocation
+        if (n != 1) {
+            return static_cast<T*>(::operator new(n * sizeof(T)));
+        }
 
-        return nullptr;  // Replace this
+        // LOCK THE MUTEX!
+        std::lock_guard<std::mutex> lock(state_->mutex_);
+
+        if (!state_->free_list_) {
+            expand_pool();  // Called with lock held
+        }
+
+        Block* block = state_->free_list_;
+        state_->free_list_ = block->next;
+        state_->total_allocated_.fetch_add(1);  // Atomic increment
+
+        return reinterpret_cast<T*>(block);
     }
 
     // TODO: Implement thread-safe deallocate
@@ -466,6 +510,18 @@ public:
         // Hints:
         // Option 1 (Simple): Lock mutex, return to free list, unlock
         // Option 2 (Advanced): Use atomic CAS for lock-free deallocation
+        if (n != 1) {
+            ::operator delete(ptr);
+            return;
+        }
+
+        // LOCK THE MUTEX!
+        std::lock_guard<std::mutex> lock(state_->mutex_);
+
+        Block* block = reinterpret_cast<Block*>(ptr);
+        block->next = state_->free_list_;
+        state_->free_list_ = block;
+        state_->total_deallocated_.fetch_add(1);
     }
 
     template <typename U>
@@ -474,9 +530,20 @@ public:
     };
 
 private:
-    // TODO: Implement thread-safe expand_pool
+    //! MUST be called with state_->mutex_ held!
     void expand_pool() {
-        // Hint: Must be called while holding lock (or use double-checked locking)
+        Pool* new_pool = static_cast<Pool*>(::operator new(sizeof(Pool)));
+        new_pool->next = state_->current_pool_;
+        state_->current_pool_ = new_pool;
+
+        Block* blocks = reinterpret_cast<Block*>(new_pool->blocks);
+        for (size_t i = 0; i < Pool::blocks_per_pool - 1; i++) {
+            blocks[i].next = &blocks[i + 1];
+        }
+        blocks[Pool::blocks_per_pool - 1].next = state_->free_list_;
+        state_->free_list_ = blocks;
+
+        std::cout << "  📦 Pool expanded (thread-safe)\n";
     }
 };
 
@@ -499,12 +566,12 @@ private:
     BaseAllocator base_;
 
     // TODO: Add static tracking variables
-    // static inline std::atomic<size_t> total_allocated_{0};
-    // static inline std::atomic<size_t> total_freed_{0};
-    // static inline std::atomic<size_t> allocation_count_{0};
-    // static inline std::atomic<size_t> deallocation_count_{0};
-    // static inline std::atomic<size_t> current_usage_{0};
-    // static inline std::atomic<size_t> peak_usage_{0};
+    static inline std::atomic<size_t> total_allocated_{0};
+    static inline std::atomic<size_t> total_freed_{0};
+    static inline std::atomic<size_t> allocation_count_{0};
+    static inline std::atomic<size_t> deallocation_count_{0};
+    static inline std::atomic<size_t> current_usage_{0};
+    static inline std::atomic<size_t> peak_usage_{0};
 
 public:
     using value_type = T;
@@ -521,8 +588,23 @@ public:
         // 2. Update all statistics
         // 3. Print allocation info (optional, can be verbose)
         // 4. Return pointer
+        T* ptr = base_.allocate(n);
 
-        return nullptr;  // Replace this
+        // Track statistics
+        size_t bytes = n * sizeof(T);
+        total_allocated_.fetch_add(bytes);
+        allocation_count_.fetch_add(1);
+
+        // update current and peak usage
+        size_t current = current_usage_.fetch_add(bytes) + bytes;
+
+        // Update peak (lock-free)
+        size_t old_peak = peak_usage_.load();
+        while (current > old_peak && !peak_usage_.compare_exchange_weak(old_peak, current)) {
+            // Retry
+        }
+
+        return ptr;
     }
 
     // TODO: Implement deallocate with tracking
@@ -531,27 +613,98 @@ public:
         // 1. Update statistics
         // 2. Print deallocation info (optional)
         // 3. Call base_.deallocate(ptr, n)
+
+        // Track statistics
+        size_t bytes = n * sizeof(T);
+        total_freed_.fetch_add(bytes);
+        deallocation_count_.fetch_add(1);
+        current_usage_.fetch_sub(bytes);
+
+        // Call base allocator
+        base_.deallocate(ptr, n);
     }
 
     template <typename U>
     struct rebind {
-        using other = TrackingAllocator<U, BaseAllocator>;
+        using other = TrackingAllocator<
+            U, typename std::allocator_traits<BaseAllocator>::template rebind_alloc<U>>;
     };
 
     // TODO: Implement static method to print statistics
+    // Static method to print statistics
     static void print_stats() {
-        // Print all tracking statistics:
-        // - Total allocated
-        // - Total freed
-        // - Current usage
-        // - Peak usage
-        // - Allocation count
-        // - Average allocation size
-        // - Potential leaks
+        std::cout << "\n" << std::string(60, '=') << "\n";
+        std::cout << "📊 TrackingAllocator Statistics\n";
+        std::cout << std::string(60, '=') << "\n";
+
+        size_t total_alloc = total_allocated_.load();
+        size_t total_free = total_freed_.load();
+        size_t alloc_count = allocation_count_.load();
+        size_t dealloc_count = deallocation_count_.load();
+        size_t current = current_usage_.load();
+        size_t peak = peak_usage_.load();
+
+        std::cout << "Total allocated:     " << total_alloc << " bytes\n";
+        std::cout << "Total freed:         " << total_free << " bytes\n";
+        std::cout << "Current usage:       " << current << " bytes\n";
+        std::cout << "Peak usage:          " << peak << " bytes\n";
+        std::cout << "\n";
+        std::cout << "Allocation count:    " << alloc_count << "\n";
+        std::cout << "Deallocation count:  " << dealloc_count << "\n";
+
+        if (alloc_count > 0) {
+            std::cout << "Avg allocation size: " << (total_alloc / alloc_count) << " bytes\n";
+        }
+
+        std::cout << "\n";
+
+        // Check for leaks
+        if (current > 0) {
+            std::cout << "⚠️  MEMORY LEAK DETECTED!\n";
+            std::cout << "   " << current << " bytes still allocated\n";
+            std::cout << "   " << (alloc_count - dealloc_count) << " allocations not freed\n";
+        } else if (total_alloc == total_free) {
+            std::cout << "✅ No memory leaks detected\n";
+        }
+
+        std::cout << std::string(60, '=') << "\n";
     }
 
     // TODO: Implement static method to reset statistics
-    static void reset_stats() {}
+    static void reset_stats() {
+        total_allocated_.store(0);
+        total_freed_.store(0);
+        allocation_count_.store(0);
+        deallocation_count_.store(0);
+        current_usage_.store(0);
+        peak_usage_.store(0);
+
+        std::cout << "📊 Statistics reset\n";
+    }
+
+    // Getters
+    static size_t get_total_allocated() {
+        return total_allocated_.load();
+    }
+    static size_t get_total_freed() {
+        return total_freed_.load();
+    }
+    static size_t get_current_usage() {
+        return current_usage_.load();
+    }
+    static size_t get_peak_usage() {
+        return peak_usage_.load();
+    }
+    static size_t get_allocation_count() {
+        return allocation_count_.load();
+    }
+    static size_t get_deallocation_count() {
+        return deallocation_count_.load();
+    }
+
+    // Make other template instances friends
+    template <typename U, typename A>
+    friend class TrackingAllocator;
 };
 
 // =============================================================================
@@ -639,7 +792,6 @@ void benchmark_vector_of_entities(const std::string& name, int count = 10000) {
     std::cout << name << ": " << duration.count() << " μs\n";
 }
 
-/*
 void benchmark_arena_pattern(int frames = 1000) {
     using namespace std::chrono;
 
@@ -669,7 +821,8 @@ void benchmark_arena_pattern(int frames = 1000) {
         Arena arena(10000 * sizeof(Particle) * 2);  // Enough for all frames
 
         for (int frame = 0; frame < frames; ++frame) {
-            std::vector<Particle, ArenaAllocator<Particle>> particles{&arena};
+            ArenaAllocator<Particle> alloc(&arena);
+            std::vector<Particle, ArenaAllocator<Particle>> particles(alloc);
             particles.resize(10000);
 
             // Process particles...
@@ -692,7 +845,6 @@ void benchmark_arena_pattern(int frames = 1000) {
     std::cout << "Arena allocator: " << arena_time.count() << " ms\n";
     std::cout << "Speedup: " << (double)default_time.count() / arena_time.count() << "x\n";
 }
-*/
 
 // =============================================================================
 // Test Functions
@@ -790,7 +942,6 @@ void test_thread_safety() {
     std::cout << std::string(60, '=') << "\n";
 
     // TODO: Uncomment when implemented
-    /*
     {
         const int num_threads = 4;
         const int ops_per_thread = 10000;
@@ -798,10 +949,11 @@ void test_thread_safety() {
         std::vector<std::thread> threads;
 
         for (int t = 0; t < num_threads; ++t) {
-            threads.emplace_back([ops_per_thread]() {
+            threads.emplace_back([=]() {
+                const int iterations = ops_per_thread;
                 std::list<int, ThreadSafePoolAllocator<int>> local_list;
 
-                for (int i = 0; i < ops_per_thread; ++i) {
+                for (int i = 0; i < iterations; ++i) {
                     local_list.push_back(i);
 
                     if (i % 100 == 0) {
@@ -819,9 +971,8 @@ void test_thread_safety() {
     }
 
     std::cout << "\n✅ Thread-safe allocator test complete!\n";
-    */
 
-    std::cout << "❌ Implement ThreadSafePoolAllocator first!\n";
+    // std::cout << "❌ Implement ThreadSafePoolAllocator first!\n";
 }
 
 void run_benchmarks() {
@@ -837,7 +988,7 @@ void run_benchmarks() {
     benchmark_vector_of_entities<std::allocator<Entity>>("Default allocator");
 
     // TODO: Uncomment when implemented
-    // benchmark_arena_pattern();
+    benchmark_arena_pattern();
 
     std::cout << "\n";
 }
