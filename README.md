@@ -5,13 +5,15 @@
 ## 🎯 Learning Goals
 
 Becoming a professional C++ developer who can:
+
 - Write efficient, maintainable, and safe C++ code
-- Master memory management and resource handling  
+- Master memory management and resource handling
 - Use modern C++ features effectively
 - Design scalable software architectures
 - Debug and optimize performance-critical applications
 
 Extra:
+
 - Integrated **Claude AI** as a learning accelerator and development productivity tool
 
 ## 📁 Repository Structure
@@ -23,6 +25,7 @@ Extra:
 ## 📈 Current Progress
 
 ### Tier 1: Core Professional Competencies (In Progress)
+
 - [x] Development environment setup (Explore Linux/macOS development environments)
 - [x] Git/Github knowledge recall and environment setup
 - [x] C++ project template creation
@@ -30,13 +33,13 @@ Extra:
   - [x] RAII (Resource Acquisition Is Initialization)
   - [x] Smart Pointers (unique_ptr, shared_ptr, weak_ptr)
   - [x] Move Semantics & Perfect Forwarding
-  - [ ] Custom Allocators
+  - [x] Custom Allocators
   - [ ] Memory Debugging Tools
 - [ ] Modern C++ Standards (C++11/14/17/20/23)
 - [ ] Object-Oriented Programming (Advanced)
 - [ ] Template System (Essential)
 
-*`To be continue...`*
+_`To be continue...`_
 
 ## 🛠️ Development Environment
 
@@ -50,15 +53,16 @@ Extra:
 
 ### Books
 
-- *`<blank>`*
+- _`<blank>`_
 
 ### Online Resources
 
-- *`<blank>`*
+- _`<blank>`_
 
 ## 🚀 Getting Started
 
 ### For New Study Projects Example
+
 ```bash
 # Navigate to projects directory
 cd Project/
@@ -76,3 +80,4 @@ cd ~/workspace/Professional-Cpp-Programmer/
 git add .
 git commit -m "Day 1: Task"
 git push origin main
+```
