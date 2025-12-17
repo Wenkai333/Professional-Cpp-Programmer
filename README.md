@@ -29,15 +29,20 @@ Extra:
 - [x] Development environment setup (Explore Linux/macOS development environments)
 - [x] Git/Github knowledge recall and environment setup
 - [x] C++ project template creation
-- [ ] **Memory Management & Resource Handling** ← `Current Focus`
+- [ ] **Memory Management & Resource Handling** ← `Pending Focus (to Tier2 temp)`
   - [x] RAII (Resource Acquisition Is Initialization)
   - [x] Smart Pointers (unique_ptr, shared_ptr, weak_ptr)
   - [x] Move Semantics & Perfect Forwarding
   - [x] Custom Allocators
-  - [ ] Memory Debugging Tools
+  - [ ] Memory Debugging Tools ← Pending
 - [ ] Modern C++ Standards (C++11/14/17/20/23)
 - [ ] Object-Oriented Programming (Advanced)
 - [ ] Template System (Essential)
+
+## Tier 2: Advanced Professional Skills (Should Master)
+
+- [ ] STL Mastery
+- [ ] Concurrency & Multithreading  ← `Current Focus`
 
 _`To be continue...`_
 
