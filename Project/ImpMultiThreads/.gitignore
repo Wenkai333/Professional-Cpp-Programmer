@@ -1,0 +1,99 @@
+# Build directories
+build/
+cmake-build-*/
+*.build/
+out/
+
+# Compiled Object files
+*.o
+*.obj
+*.ko
+*.elf
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Profiling
+*.prof
+gmon.out
+callgrind.out.*
+perf.data*
+*.gcda
+*.gcno
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+CMakeUserPresets.json
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+
+# IDE files
+.vscode/settings.json.bak
+.idea/
+*.swp
+*.swo
+*~
+
+# Package managers
+conan.lock
+conandata.yml
+conanbuildinfo.*
+conanfile.pyc
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Documentation
+docs/html/
+docs/latex/
+docs/doxygen_warnings.txt
+
+# Test results
+Testing/
+*.gcov
+lcov.info
+coverage/
