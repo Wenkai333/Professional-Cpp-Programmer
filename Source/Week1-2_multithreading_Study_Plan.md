@@ -1,4 +1,5 @@
 # Week 1-2: C++ Threading Fundamentals & Race Conditions
+
 ## Complete Study Plan with Resources (3-4 hours/day, 14 days)
 
 ---
@@ -29,6 +30,7 @@
 ### Learning Objectives
 
 By the end of Week 1-2, you will:
+
 - ✅ Create and manage threads safely
 - ✅ Understand what causes race conditions and data races
 - ✅ Use mutex and lock_guard correctly
@@ -83,11 +85,13 @@ chmod +x build.sh
 ### Essential Tools Documentation
 
 **ThreadSanitizer:**
+
 - Official Docs: https://github.com/google/sanitizers/wiki/ThreadSanitizerCppManual
 - Clang Docs: https://clang.llvm.org/docs/ThreadSanitizer.html
 - Usage Guide: https://developer.android.com/ndk/guides/tsan
 
 **GDB/LLDB for Threading:**
+
 - GDB Thread Commands: https://sourceware.org/gdb/current/onlinedocs/gdb/Threads.html
 - LLDB Tutorial: https://lldb.llvm.org/use/tutorial.html
 
@@ -111,6 +115,7 @@ chmod +x build.sh
 ```
 
 **Key Questions to Answer:**
+
 1. Why do we need threads? (parallelism vs concurrency)
 2. What's the difference between process and thread?
 3. What resources do threads share vs not share?
@@ -119,10 +124,12 @@ chmod +x build.sh
 #### Required Reading
 
 1. **CppReference - std::thread** (20 mins)
+
    - https://en.cppreference.com/w/cpp/thread/thread
    - Focus on: Constructor, join, detach, joinable
 
 2. **"C++ Threading Tutorial"** (30 mins)
+
    - https://www.modernescpp.com/index.php/c-core-guidelines-taking-care-of-your-child/
    - Comprehensive thread basics
 
@@ -133,6 +140,7 @@ chmod +x build.sh
 #### Video Resources
 
 1. **🎥 CppCon 2017: "C++ Concurrency in Action" by Anthony Williams** (25 mins)
+
    - https://www.youtube.com/watch?v=Xz5x8IwmFj4
    - Focus: First 25 minutes on thread basics
    - **Why:** Author of the definitive book on C++ concurrency
@@ -180,33 +188,33 @@ void increment_counter(int& counter, int iterations) {
 }
 
 int main() {
-    std::cout << "Hardware concurrency: " 
+    std::cout << "Hardware concurrency: "
               << std::thread::hardware_concurrency() << "\n\n";
-    
+
     // TODO 1: Create a single thread running print_numbers
     // - Join it
     // - Observe output
-    
+
     // TODO 2: Create 3 threads running print_numbers concurrently
     // - Store in std::vector<std::thread>
     // - Join all of them
     // - Observe interleaved output
-    
+
     // TODO 3: Try NOT joining a thread (comment out join)
     // - Compile and run
     // - What happens? Why?
     // - Read the error message carefully
-    
+
     // TODO 4: Try detaching a thread instead
     // - What's the difference?
     // - When would you use detach?
-    
+
     // TODO 5: Demonstrate the race condition
     int counter = 0;
     // Create 10 threads, each incrementing counter 10000 times
     // Print final counter value
     // Run multiple times - is it always the same?
-    
+
     return 0;
 }
 ```
@@ -224,24 +232,24 @@ int main() {
 class thread_guard {
 private:
     std::thread& thread_;
-    
+
 public:
     // TODO: Constructor takes thread reference
     explicit thread_guard(std::thread& t) : thread_(t) {
         // Store the thread reference
     }
-    
+
     // TODO: Destructor joins the thread if joinable
     ~thread_guard() {
         // If thread is joinable, join it
         // This prevents the std::terminate problem
         // Print message when joining
     }
-    
+
     // TODO: Delete copy operations (why?)
     thread_guard(const thread_guard&) = delete;
     thread_guard& operator=(const thread_guard&) = delete;
-    
+
     // TODO: BONUS - Implement move operations
 };
 
@@ -254,11 +262,11 @@ void may_throw(int id) {
 
 int main() {
     // TODO: Test thread_guard with normal execution
-    
+
     // TODO: Test thread_guard with exception
     // Without thread_guard, exception causes std::terminate
     // With thread_guard, thread is properly joined via RAII
-    
+
     return 0;
 }
 ```
@@ -276,6 +284,7 @@ clang++ -std=c++20 -g -fsanitize=thread basic_threads.cpp -o basic_threads_tsan
 ```
 
 **Expected Observations:**
+
 1. Thread output is interleaved (non-deterministic)
 2. Counter race condition gives wrong results
 3. TSan reports the data race with line numbers
@@ -285,13 +294,13 @@ clang++ -std=c++20 -g -fsanitize=thread basic_threads.cpp -o basic_threads_tsan
 
 ### ✅ Daily Checkpoint
 
-- [ ] Can create and join threads
-- [ ] Understand thread lifecycle
-- [ ] Implemented thread_guard RAII wrapper
-- [ ] Witnessed your first data race!
+- [x] Can create and join threads
+- [x] Understand thread lifecycle
+- [x] Implemented thread_guard RAII wrapper
+- [x] Witnessed your first data race!
 - [ ] Used ThreadSanitizer successfully
 
-**Time spent:** ___ hours  
+**Time spent:** \_\_\_ hours  
 **Difficulties:**  
 **Questions:**
 
@@ -305,7 +314,7 @@ clang++ -std=c++20 -g -fsanitize=thread basic_threads.cpp -o basic_threads_tsan
 
 ```cpp
 // Data Race vs Race Condition
-// 
+//
 // Data Race: Two threads access same memory, at least one writes, no synchronization
 // Result: UNDEFINED BEHAVIOR
 //
@@ -329,6 +338,7 @@ bool ready = false;
 ```
 
 **Key Questions:**
+
 1. Why is `counter++` not atomic?
 2. What does "undefined behavior" really mean in concurrent code?
 3. How does compiler optimization make races worse?
@@ -337,10 +347,12 @@ bool ready = false;
 #### Required Reading
 
 1. **CppReference - Memory Model** (20 mins)
+
    - https://en.cppreference.com/w/cpp/language/memory_model
    - Focus: Data races section
 
 2. **"What Every Programmer Should Know About Memory"** (25 mins)
+
    - https://www.akkadia.org/drepper/cpumemory.pdf (Section 6)
    - Or simplified: https://lwn.net/Articles/250967/
    - Focus: Cache coherency and why races are bad
@@ -352,6 +364,7 @@ bool ready = false;
 #### Video Resources
 
 1. **🎥 CppCon 2016: "The Speed of Concurrency" by Fedor Pikus** (30 mins)
+
    - https://www.youtube.com/watch?v=9hJkWwHDDxs
    - Focus: First 30 minutes on data races
    - **Why:** Shows EXACTLY what happens at hardware level
@@ -390,7 +403,7 @@ bool ready = false;
 // Race 1: Lost Updates
 class BankAccount {
     int balance_ = 1000;
-    
+
 public:
     // TODO: Implement deposit (has race condition!)
     void deposit(int amount) {
@@ -405,7 +418,7 @@ public:
         // Print transaction
         std::cout << "Deposited " << amount << ", balance: " << balance_ << "\n";
     }
-    
+
     // TODO: Implement withdraw (has race condition!)
     void withdraw(int amount) {
         // Read balance
@@ -419,23 +432,23 @@ public:
         // Print transaction
         std::cout << "Withdrew " << amount << ", balance: " << balance_ << "\n";
     }
-    
+
     int balance() const { return balance_; }
 };
 
 // Race 2: Use-After-Free with Threads
 void demonstrate_use_after_free() {
     int* ptr = new int(42);
-    
+
     // TODO: Create thread that uses ptr after 100ms delay
     std::thread reader([ptr]() {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         std::cout << "Reading: " << *ptr << "\n";  // Might be freed!
     });
-    
+
     // TODO: Delete ptr immediately
     delete ptr;
-    
+
     reader.join();
     // What went wrong? How does TSan detect this?
 }
@@ -443,9 +456,9 @@ void demonstrate_use_after_free() {
 // Race 3: Double-Checked Locking (Broken Pattern)
 class Singleton {
     static Singleton* instance_;
-    
+
     Singleton() = default;
-    
+
 public:
     // TODO: Implement getInstance with broken double-checked locking
     static Singleton* getInstance() {
@@ -465,33 +478,33 @@ struct Point {
 
 void demonstrate_torn_write() {
     Point p{0.0, 0.0};
-    
+
     // TODO: Writer thread - continuously writes {1.0, 1.0}
     std::thread writer([&p]() {
         for (int i = 0; i < 100000; ++i) {
             p = Point{1.0, 1.0};
         }
     });
-    
+
     // TODO: Reader thread - reads and checks consistency
     std::thread reader([&p]() {
         for (int i = 0; i < 100000; ++i) {
             Point local = p;
             if (local.x != local.y) {
                 // Torn read! Saw partial update
-                std::cout << "Inconsistent! x=" << local.x 
+                std::cout << "Inconsistent! x=" << local.x
                          << " y=" << local.y << "\n";
             }
         }
     });
-    
+
     writer.join();
     reader.join();
 }
 
 int main() {
     std::cout << "=== Race Condition Examples ===\n\n";
-    
+
     // TODO 1: Test BankAccount race
     // - Create account with 1000 balance
     // - Spawn 10 threads, each deposits 100
@@ -499,22 +512,22 @@ int main() {
     // - Expected final balance: 1000 + 1000 - 500 = 1500
     // - Actual balance: varies! (race condition)
     // - Run with TSan
-    
+
     // TODO 2: Test use-after-free
     // demonstrate_use_after_free();
     // - Run with TSan
     // - Observe the thread safety warning
-    
+
     // TODO 3: Test singleton race
     // - Create 100 threads calling getInstance()
     // - Print how many unique instances created
     // - Should be 1, might be more!
-    
+
     // TODO 4: Test torn reads
     // demonstrate_torn_write();
     // - On some systems you'll see inconsistent state
     // - On others, alignment might prevent it
-    
+
     return 0;
 }
 ```
@@ -582,7 +595,7 @@ done
 - [ ] Comfortable using ThreadSanitizer
 - [ ] Understand why races cause undefined behavior
 
-**Time spent:** ___ hours  
+**Time spent:** \_\_\_ hours  
 **Difficulties:**  
 **Questions:**
 
@@ -614,6 +627,7 @@ done
 ```
 
 **Key Concepts:**
+
 1. What is mutual exclusion?
 2. What is a critical section?
 3. Why RAII is critical for locks
@@ -623,12 +637,15 @@ done
 #### Required Reading
 
 1. **CppReference - std::mutex** (15 mins)
+
    - https://en.cppreference.com/w/cpp/thread/mutex
 
 2. **CppReference - std::lock_guard** (10 mins)
+
    - https://en.cppreference.com/w/cpp/thread/lock_guard
 
 3. **"RAII and Locking" by Herb Sutter** (20 mins)
+
    - https://herbsutter.com/2013/05/13/gotw-91-solution-smart-pointer-parameters/
    - Related RAII principles you already know!
 
@@ -639,11 +656,13 @@ done
 #### Video Resources
 
 1. **🎥 CppCon 2016: "The Exception Situation" by Patrice Roy** (20 mins)
+
    - https://www.youtube.com/watch?v=Oy-VTqz1_58
    - Focus: Exception safety with mutexes (30 mins mark)
    - **Why:** Shows why RAII is critical for locks
 
 2. **🎥 "C++ Threading #3: Locking and Deadlock" by Bo Qian** (15 mins)
+
    - https://www.youtube.com/watch?v=3ZxZPeXPaM4
    - **Why:** Clear explanation of mutex basics
 
@@ -677,17 +696,17 @@ class ThreadSafeBankAccount {
 private:
     int balance_;
     mutable std::mutex mutex_;  // Add mutex to protect balance_
-    
+
 public:
     explicit ThreadSafeBankAccount(int initial) : balance_(initial) {}
-    
+
     // TODO: Implement thread-safe deposit
     void deposit(int amount) {
         std::lock_guard<std::mutex> lock(mutex_);
         balance_ += amount;
         std::cout << "Deposited " << amount << ", balance: " << balance_ << "\n";
     }
-    
+
     // TODO: Implement thread-safe withdraw
     void withdraw(int amount) {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -696,7 +715,7 @@ public:
             std::cout << "Withdrew " << amount << ", balance: " << balance_ << "\n";
         }
     }
-    
+
     // TODO: Implement thread-safe balance getter
     int balance() const {
         // Need to lock even for reading!
@@ -711,7 +730,7 @@ class Counter {
 private:
     int count_ = 0;
     mutable std::mutex mutex_;
-    
+
 public:
     // TODO: Implement increment
     void increment() {
@@ -719,13 +738,13 @@ public:
         ++count_;
         // lock automatically released when lock_guard destructor runs
     }
-    
+
     // TODO: Implement decrement
     void decrement() {
         std::lock_guard<std::mutex> lock(mutex_);
         --count_;
     }
-    
+
     // TODO: Implement get
     int get() const {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -737,12 +756,12 @@ public:
 class Logger {
 private:
     mutable std::mutex mutex_;
-    
+
 public:
     // TODO: Thread-safe log function
     void log(const std::string& message) {
         std::lock_guard<std::mutex> lock(mutex_);
-        std::cout << "[" << std::this_thread::get_id() << "] " 
+        std::cout << "[" << std::this_thread::get_id() << "] "
                   << message << "\n";
         // Without mutex, output gets interleaved/garbled
     }
@@ -752,11 +771,11 @@ public:
 void test_thread_safe_account() {
     ThreadSafeBankAccount account(1000);
     std::vector<std::thread> threads;
-    
+
     // TODO: Create threads that deposit and withdraw
     // - Should get correct final balance now
     // - Run with TSan - no warnings!
-    
+
     for (int i = 0; i < 10; ++i) {
         threads.emplace_back([&account]() {
             account.deposit(100);
@@ -765,11 +784,11 @@ void test_thread_safe_account() {
             account.withdraw(50);
         });
     }
-    
+
     for (auto& t : threads) {
         t.join();
     }
-    
+
     std::cout << "Final balance: " << account.balance() << "\n";
 }
 
@@ -777,9 +796,9 @@ int main() {
     // TODO: Test all implementations
     // TODO: Verify no TSan warnings
     // TODO: Compare performance with unsafe version
-    
+
     test_thread_safe_account();
-    
+
     return 0;
 }
 ```
@@ -798,14 +817,14 @@ int main() {
 class CoarseGrainedData {
     std::vector<int> data_;
     mutable std::mutex mutex_;
-    
+
 public:
     // TODO: Lock for entire operation
     void add(int value) {
         std::lock_guard<std::mutex> lock(mutex_);
         data_.push_back(value);
     }
-    
+
     void process() {
         std::lock_guard<std::mutex> lock(mutex_);
         for (auto& val : data_) {
@@ -813,7 +832,7 @@ public:
             std::this_thread::sleep_for(std::chrono::microseconds(10));
         }
     }
-    
+
     size_t size() const {
         std::lock_guard<std::mutex> lock(mutex_);
         return data_.size();
@@ -824,11 +843,11 @@ public:
 class FineGrainedData {
     std::vector<int> data_;
     std::vector<std::mutex> mutexes_;  // One mutex per element!
-    
+
 public:
-    explicit FineGrainedData(size_t size) 
+    explicit FineGrainedData(size_t size)
         : data_(size), mutexes_(size) {}
-    
+
     // TODO: Lock only specific element
     void update(size_t index, int value) {
         if (index < mutexes_.size()) {
@@ -836,7 +855,7 @@ public:
             data_[index] = value;
         }
     }
-    
+
     void process(size_t index) {
         if (index < mutexes_.size()) {
             std::lock_guard<std::mutex> lock(mutexes_[index]);
@@ -864,7 +883,7 @@ public:
 class Mistake1 {
     int data_ = 0;
     std::mutex mutex_;
-    
+
 public:
     void update() {
         data_++;  // TODO: What's wrong? (No lock!)
@@ -877,7 +896,7 @@ class Mistake2 {
     int data2_ = 0;
     std::mutex mutex1_;
     std::mutex mutex2_;
-    
+
 public:
     void update1() {
         std::lock_guard<std::mutex> lock(mutex1_);
@@ -890,12 +909,12 @@ public:
 class Mistake3 {
     int data_ = 0;
     std::mutex mutex_;
-    
+
 public:
     void update() {
         std::lock_guard<std::mutex> lock(mutex_);
         data_++;
-        
+
         // TODO: What's wrong with this?
         std::this_thread::sleep_for(std::chrono::seconds(1));
         std::cout << "Updated data to " << data_ << "\n";
@@ -906,7 +925,7 @@ public:
 class Mistake4 {
     int data_ = 0;
     mutable std::mutex mutex_;
-    
+
 public:
     int& get() {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -918,15 +937,15 @@ public:
 class Mistake5 {
     int data_ = 0;
     std::mutex mutex_;
-    
+
 public:
     void update() {
         mutex_.lock();  // TODO: What's wrong? (No RAII!)
-        
+
         if (data_ > 100) {
             throw std::runtime_error("Too large!");  // Mutex never unlocked!
         }
-        
+
         data_++;
         mutex_.unlock();
     }
@@ -947,7 +966,7 @@ public:
 - [ ] Fixed all race conditions from Day 2
 - [ ] Understand lock granularity tradeoffs
 
-**Time spent:** ___ hours  
+**Time spent:** \_\_\_ hours  
 **Difficulties:**  
 **Questions:**
 
@@ -987,6 +1006,7 @@ public:
 ```
 
 **Key Questions:**
+
 1. When do you need unique_lock over lock_guard?
 2. What does "deferred locking" mean?
 3. How does unique_lock enable condition variables?
@@ -995,15 +1015,19 @@ public:
 #### Required Reading
 
 1. **CppReference - std::unique_lock** (20 mins)
+
    - https://en.cppreference.com/w/cpp/thread/unique_lock
 
 2. **CppReference - std::lock** (10 mins)
+
    - https://en.cppreference.com/w/cpp/thread/lock
 
 3. **CppReference - std::scoped_lock (C++17)** (10 mins)
+
    - https://en.cppreference.com/w/cpp/thread/scoped_lock
 
 4. **"Avoid Deadlocks"** (20 mins)
+
    - https://www.modernescpp.com/index.php/avoid-deadlocks/
 
 5. **"unique_lock vs lock_guard"** (15 mins)
@@ -1013,11 +1037,13 @@ public:
 #### Video Resources
 
 1. **🎥 CppCon 2017: "Postmodern Immutable Data Structures"** (25 mins)
+
    - https://www.youtube.com/watch?v=sPhpelUfu8Q
    - Focus: Locking strategies section (around 20 min mark)
    - **Why:** Shows when you DON'T need complex locking
 
 2. **🎥 "Deadlock Explained with Dining Philosophers"** (10 mins)
+
    - https://www.youtube.com/watch?v=FYQlvpao8fc
    - **Why:** Classic visualization of deadlock problem
 
@@ -1049,49 +1075,49 @@ class Database {
 private:
     std::mutex mutex_;
     int query_count_ = 0;
-    
+
 public:
     // TODO: Implement with unique_lock allowing early unlock
     void execute_query() {
         std::unique_lock<std::mutex> lock(mutex_);
-        
+
         // Fast operation under lock
         query_count_++;
         int local_count = query_count_;
-        
+
         // Unlock early for expensive work
         lock.unlock();
-        
+
         // Expensive operation WITHOUT holding lock
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         std::cout << "Query " << local_count << " completed\n";
-        
+
         // Can relock if needed
         lock.lock();
         // Do more work under lock
         std::cout << "Finalizing query " << local_count << "\n";
     }
-    
+
     // TODO: Implement deferred locking
     void conditional_update(bool should_update) {
         std::unique_lock<std::mutex> lock(mutex_, std::defer_lock);
-        
+
         // Do some work without lock
         std::cout << "Preparing update...\n";
-        
+
         if (should_update) {
             lock.lock();  // Lock only if needed
             query_count_++;
             std::cout << "Updated count to " << query_count_ << "\n";
         }
-        
+
         // lock automatically unlocks in destructor (if locked)
     }
-    
+
     // TODO: Implement with try_lock
     bool try_execute_query() {
         std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
-        
+
         if (lock.owns_lock()) {
             // Got the lock!
             query_count_++;
@@ -1115,21 +1141,21 @@ std::unique_lock<std::mutex> get_lock(std::mutex& m) {
 
 int main() {
     Database db;
-    
+
     // TODO: Test all Database methods
     std::thread t1([&db]() { db.execute_query(); });
     std::thread t2([&db]() { db.conditional_update(true); });
     std::thread t3([&db]() { db.try_execute_query(); });
-    
+
     t1.join();
     t2.join();
     t3.join();
-    
+
     // TODO: Demonstrate lock transfer
     std::mutex m;
     auto lock = get_lock(m);
     std::cout << "Lock transferred to main\n";
-    
+
     return 0;
 }
 ```
@@ -1147,12 +1173,12 @@ class Account {
 private:
     int balance_;
     std::mutex mutex_;
-    
+
 public:
     explicit Account(int balance) : balance_(balance) {}
-    
+
     std::mutex& get_mutex() { return mutex_; }
-    
+
     void withdraw(int amount) { balance_ -= amount; }
     void deposit(int amount) { balance_ += amount; }
     int balance() const { return balance_; }
@@ -1163,10 +1189,10 @@ void transfer_deadlock_version(Account& from, Account& to, int amount) {
     std::lock_guard<std::mutex> lock1(from.get_mutex());
     std::this_thread::sleep_for(std::chrono::milliseconds(1));  // Increase chance of deadlock
     std::lock_guard<std::mutex> lock2(to.get_mutex());
-    
+
     from.withdraw(amount);
     to.deposit(amount);
-    
+
     // Deadlock scenario:
     // Thread 1: transfer(A, B, 100) - locks A, waits for B
     // Thread 2: transfer(B, A, 50)  - locks B, waits for A
@@ -1178,14 +1204,14 @@ void transfer_correct_version(Account& from, Account& to, int amount) {
     // std::lock locks multiple mutexes atomically
     // (all or nothing - prevents deadlock)
     std::lock(from.get_mutex(), to.get_mutex());
-    
+
     // Now adopt the locks into lock_guards for RAII
     std::lock_guard<std::mutex> lock1(from.get_mutex(), std::adopt_lock);
     std::lock_guard<std::mutex> lock2(to.get_mutex(), std::adopt_lock);
-    
+
     from.withdraw(amount);
     to.deposit(amount);
-    
+
     std::cout << "Transferred " << amount << " from account to account\n";
 }
 
@@ -1194,10 +1220,10 @@ void transfer_cpp17_version(Account& from, Account& to, int amount) {
     // std::scoped_lock locks multiple mutexes AND provides RAII
     // One-liner solution!
     std::scoped_lock lock(from.get_mutex(), to.get_mutex());
-    
+
     from.withdraw(amount);
     to.deposit(amount);
-    
+
     std::cout << "Transferred " << amount << " (C++17 style)\n";
 }
 
@@ -1206,9 +1232,9 @@ void test_deadlock() {
     std::cout << "Testing deadlock scenario (might hang!)...\n";
     Account alice(1000);
     Account bob(1000);
-    
+
     std::vector<std::thread> threads;
-    
+
     // Create transfers in both directions
     for (int i = 0; i < 10; ++i) {
         threads.emplace_back([&]() {
@@ -1218,7 +1244,7 @@ void test_deadlock() {
             transfer_deadlock_version(bob, alice, 10);
         });
     }
-    
+
     for (auto& t : threads) {
         t.join();  // This might never complete! (deadlock)
     }
@@ -1228,9 +1254,9 @@ void test_correct_version() {
     std::cout << "\nTesting correct version...\n";
     Account alice(1000);
     Account bob(1000);
-    
+
     std::vector<std::thread> threads;
-    
+
     // Create transfers in both directions
     for (int i = 0; i < 10; ++i) {
         threads.emplace_back([&]() {
@@ -1240,11 +1266,11 @@ void test_correct_version() {
             transfer_correct_version(bob, alice, 10);
         });
     }
-    
+
     for (auto& t : threads) {
         t.join();
     }
-    
+
     std::cout << "Alice balance: " << alice.balance() << "\n";
     std::cout << "Bob balance: " << bob.balance() << "\n";
 }
@@ -1252,10 +1278,10 @@ void test_correct_version() {
 int main() {
     // TODO: Try test_deadlock() - it might hang!
     // test_deadlock();
-    
+
     // TODO: Then test correct version
     test_correct_version();
-    
+
     return 0;
 }
 ```
@@ -1274,17 +1300,17 @@ class Resource {
 private:
     std::mutex mutex_;
     int usage_count_ = 0;
-    
+
 public:
     // TODO: Try to acquire lock, give up if takes too long
     bool try_use_with_timeout() {
         std::unique_lock<std::mutex> lock(mutex_, std::defer_lock);
-        
+
         // Try to lock for up to 100ms
         if (lock.try_lock_for(std::chrono::milliseconds(100))) {
             usage_count_++;
             std::cout << "Acquired lock, usage: " << usage_count_ << "\n";
-            
+
             // Simulate work
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
             return true;
@@ -1293,11 +1319,11 @@ public:
             return false;
         }
     }
-    
+
     // TODO: Try to acquire lock until specific time
     bool try_use_until(std::chrono::steady_clock::time_point deadline) {
         std::unique_lock<std::mutex> lock(mutex_, std::defer_lock);
-        
+
         if (lock.try_lock_until(deadline)) {
             usage_count_++;
             std::cout << "Acquired lock before deadline\n";
@@ -1307,11 +1333,11 @@ public:
             return false;
         }
     }
-    
+
     // TODO: Non-blocking attempt
     bool try_use_nowait() {
         std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
-        
+
         if (lock.owns_lock()) {
             usage_count_++;
             std::cout << "Immediately acquired lock\n";
@@ -1326,18 +1352,18 @@ public:
 int main() {
     Resource resource;
     std::vector<std::thread> threads;
-    
+
     // TODO: Test different timing strategies
     for (int i = 0; i < 5; ++i) {
         threads.emplace_back([&resource]() {
             resource.try_use_with_timeout();
         });
     }
-    
+
     for (auto& t : threads) {
         t.join();
     }
-    
+
     return 0;
 }
 ```
@@ -1352,7 +1378,7 @@ int main() {
 - [ ] Understand deadlock causes and prevention
 - [ ] Can use try_lock family of functions
 
-**Time spent:** ___ hours  
+**Time spent:** \_\_\_ hours  
 **Difficulties:**  
 **Questions:**
 
@@ -1387,6 +1413,7 @@ int main() {
 ```
 
 **Key Questions:**
+
 1. What makes a data structure thread-safe?
 2. How to design interface for thread safety?
 3. What are the performance tradeoffs?
@@ -1395,12 +1422,15 @@ int main() {
 #### Required Reading
 
 1. **"Thread-Safe Data Structures" by Anthony Williams** (20 mins)
+
    - https://www.justsoftwaresolutions.co.uk/threading/implementing-a-thread-safe-queue-using-condition-variables.html
 
 2. **"The Problem with Locks"** (15 mins)
+
    - https://www.modernescpp.com/index.php/the-problem-with-locks/
 
 3. **CppReference - std::stack/queue** (10 mins)
+
    - Review interface design
    - https://en.cppreference.com/w/cpp/container/stack
 
@@ -1411,11 +1441,13 @@ int main() {
 #### Video Resources
 
 1. **🎥 CppCon 2014: "Lock-Free Programming Part 2"** (20 mins)
+
    - https://www.youtube.com/watch?v=CmxkPChOcvw
    - Focus: First 20 mins showing why lock-based is often better
    - **Why:** Appreciate simplicity of lock-based structures
 
 2. **🎥 "Producer Consumer Problem" by Neso Academy** (15 mins)
+
    - https://www.youtube.com/watch?v=Qx3P2wazwI0
    - **Why:** Classic concurrency pattern explained clearly
 
@@ -1451,58 +1483,58 @@ class ThreadSafeStack {
 private:
     std::stack<T> data_;
     mutable std::mutex mutex_;  // Mutable so const methods can lock
-    
+
 public:
     ThreadSafeStack() = default;
-    
+
     // TODO: Copy constructor (need to lock source!)
     ThreadSafeStack(const ThreadSafeStack& other) {
         std::lock_guard<std::mutex> lock(other.mutex_);
         data_ = other.data_;
     }
-    
+
     // Disable assignment (complex to implement correctly)
     ThreadSafeStack& operator=(const ThreadSafeStack&) = delete;
-    
+
     // TODO: Implement push
     void push(T value) {
         std::lock_guard<std::mutex> lock(mutex_);
         data_.push(std::move(value));
     }
-    
+
     // TODO: Implement pop that returns value
     // Why not return T directly? (Exception safety!)
     std::shared_ptr<T> pop() {
         std::lock_guard<std::mutex> lock(mutex_);
-        
+
         if (data_.empty()) {
             throw std::runtime_error("Stack is empty");
         }
-        
+
         // Make shared_ptr to return value before modifying stack
         auto result = std::make_shared<T>(std::move(data_.top()));
         data_.pop();
         return result;
     }
-    
+
     // TODO: Implement pop into reference
     void pop(T& value) {
         std::lock_guard<std::mutex> lock(mutex_);
-        
+
         if (data_.empty()) {
             throw std::runtime_error("Stack is empty");
         }
-        
+
         value = std::move(data_.top());
         data_.pop();
     }
-    
+
     // TODO: Implement empty check
     bool empty() const {
         std::lock_guard<std::mutex> lock(mutex_);
         return data_.empty();
     }
-    
+
     // TODO: Implement size
     size_t size() const {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -1514,7 +1546,7 @@ public:
 void test_threadsafe_stack() {
     ThreadSafeStack<int> stack;
     std::vector<std::thread> threads;
-    
+
     // TODO: Create producer threads
     for (int i = 0; i < 5; ++i) {
         threads.emplace_back([&stack, i]() {
@@ -1523,7 +1555,7 @@ void test_threadsafe_stack() {
             }
         });
     }
-    
+
     // TODO: Create consumer threads
     for (int i = 0; i < 5; ++i) {
         threads.emplace_back([&stack]() {
@@ -1537,11 +1569,11 @@ void test_threadsafe_stack() {
             }
         });
     }
-    
+
     for (auto& t : threads) {
         t.join();
     }
-    
+
     std::cout << "Final stack size: " << stack.size() << "\n";
 }
 
@@ -1569,48 +1601,48 @@ class ThreadSafeQueue {
 private:
     mutable std::mutex mutex_;
     std::queue<T> data_;
-    
+
 public:
     ThreadSafeQueue() = default;
-    
+
     // TODO: Implement push
     void push(T value) {
         std::lock_guard<std::mutex> lock(mutex_);
         data_.push(std::move(value));
     }
-    
+
     // TODO: Implement try_pop (non-blocking)
     std::shared_ptr<T> try_pop() {
         std::lock_guard<std::mutex> lock(mutex_);
-        
+
         if (data_.empty()) {
             return std::shared_ptr<T>();  // nullptr
         }
-        
+
         auto result = std::make_shared<T>(std::move(data_.front()));
         data_.pop();
         return result;
     }
-    
+
     // TODO: Implement try_pop into reference
     bool try_pop(T& value) {
         std::lock_guard<std::mutex> lock(mutex_);
-        
+
         if (data_.empty()) {
             return false;
         }
-        
+
         value = std::move(data_.front());
         data_.pop();
         return true;
     }
-    
+
     // TODO: Implement empty
     bool empty() const {
         std::lock_guard<std::mutex> lock(mutex_);
         return data_.empty();
     }
-    
+
     // TODO: Implement size
     size_t size() const {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -1622,7 +1654,7 @@ public:
 void test_producer_consumer() {
     ThreadSafeQueue<int> queue;
     std::atomic<bool> done{false};
-    
+
     // Producer threads
     std::vector<std::thread> producers;
     for (int i = 0; i < 3; ++i) {
@@ -1633,7 +1665,7 @@ void test_producer_consumer() {
             }
         });
     }
-    
+
     // Consumer threads
     std::vector<std::thread> consumers;
     for (int i = 0; i < 3; ++i) {
@@ -1649,19 +1681,19 @@ void test_producer_consumer() {
             }
         });
     }
-    
+
     // Wait for producers
     for (auto& t : producers) {
         t.join();
     }
-    
+
     // Drain queue
     while (!queue.empty()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-    
+
     done = true;
-    
+
     // Wait for consumers
     for (auto& t : consumers) {
         t.join();
@@ -1684,14 +1716,14 @@ class BadThreadSafeVector {
 private:
     std::vector<int> data_;
     mutable std::mutex mutex_;
-    
+
 public:
     // Returns reference to internal data - NOT SAFE!
     int& operator[](size_t index) {
         std::lock_guard<std::mutex> lock(mutex_);
         return data_[index];  // Lock released, but reference still live!
     }
-    
+
     // Returns iterator to internal data - NOT SAFE!
     auto begin() {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -1704,18 +1736,18 @@ class BadThreadSafeMap {
 private:
     std::map<int, std::string> data_;
     mutable std::mutex mutex_;
-    
+
 public:
     bool contains(int key) const {
         std::lock_guard<std::mutex> lock(mutex_);
         return data_.find(key) != data_.end();
     }
-    
+
     std::string get(int key) const {
         std::lock_guard<std::mutex> lock(mutex_);
         return data_.at(key);  // Might throw if key doesn't exist
     }
-    
+
     // Problem: User checks contains(), then calls get()
     // Between the two calls, another thread might erase the key!
 };
@@ -1729,7 +1761,7 @@ class GoodThreadSafeMap {
 private:
     std::map<int, std::string> data_;
     mutable std::mutex mutex_;
-    
+
 public:
     // Atomic check-and-get operation
     std::optional<std::string> try_get(int key) const {
@@ -1753,7 +1785,7 @@ public:
 - [ ] Know why returning references is dangerous
 - [ ] Understand TOCTOU bugs
 
-**Time spent:** ___ hours  
+**Time spent:** \_\_\_ hours  
 **Difficulties:**  
 **Questions:**
 
@@ -1766,9 +1798,11 @@ public:
 #### Task Queue Systems
 
 1. **"Thread Pools Explained"** (20 mins)
+
    - https://www.modernescpp.com/index.php/threadpools/
 
 2. **"Work-Stealing Queue"** (30 mins)
+
    - https://blog.molecular-matters.com/2015/08/24/job-system-2-0-lock-free-work-stealing-part-1-basics/
 
 3. **CppReference - std::priority_queue** (10 mins)
@@ -1777,11 +1811,13 @@ public:
 #### Video Resources
 
 1. **🎥 CppCon 2016: "A Work-Stealing Job System" by Sean Parent** (60 mins)
+
    - https://www.youtube.com/watch?v=zULU6Hhp42w
    - Full walkthrough of professional task system
    - **Why:** Industry-standard design patterns
 
 2. **🎥 "Task Scheduling in Games" by GDC** (40 mins)
+
    - https://www.youtube.com/watch?v=1KZghhYP6OI
    - **Why:** Real-world requirements and solutions
 
@@ -1819,7 +1855,7 @@ struct Task {
     int id;
     std::function<void()> work;
     int priority;  // Higher = more important
-    
+
     // For priority queue - lower priority value = higher priority
     bool operator<(const Task& other) const {
         return priority < other.priority;
@@ -1832,14 +1868,14 @@ class ThreadSafePriorityQueue {
 private:
     std::priority_queue<T> queue_;
     mutable std::mutex mutex_;
-    
+
 public:
     // TODO: Implement push
     void push(T value) {
         std::lock_guard<std::mutex> lock(mutex_);
         queue_.push(std::move(value));
     }
-    
+
     // TODO: Implement try_pop
     bool try_pop(T& value) {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -1850,13 +1886,13 @@ public:
         queue_.pop();
         return true;
     }
-    
+
     // TODO: Implement empty
     bool empty() const {
         std::lock_guard<std::mutex> lock(mutex_);
         return queue_.empty();
     }
-    
+
     // TODO: Implement size
     size_t size() const {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -1872,67 +1908,67 @@ private:
     std::atomic<bool> stop_{false};
     std::atomic<int> completed_tasks_{0};
     std::atomic<int> total_tasks_{0};
-    
+
 public:
     // TODO: Constructor spawns N worker threads
     explicit TaskQueue(size_t num_threads) {
         std::cout << "Creating task queue with " << num_threads << " workers\n";
-        
+
         for (size_t i = 0; i < num_threads; ++i) {
             workers_.emplace_back([this, i]() {
                 worker_thread(i);
             });
         }
     }
-    
+
     // TODO: Destructor stops workers gracefully
     ~TaskQueue() {
         std::cout << "Shutting down task queue...\n";
         stop_ = true;
-        
+
         for (auto& worker : workers_) {
             if (worker.joinable()) {
                 worker.join();
             }
         }
-        
+
         std::cout << "Task queue shutdown complete\n";
         std::cout << "Total tasks: " << total_tasks_ << "\n";
         std::cout << "Completed: " << completed_tasks_ << "\n";
     }
-    
+
     // TODO: Add task to queue
     void submit(Task task) {
         tasks_.push(std::move(task));
         total_tasks_++;
     }
-    
+
     // TODO: Get statistics
     int completed_count() const {
         return completed_tasks_;
     }
-    
+
     int pending_count() const {
         return tasks_.size();
     }
-    
+
 private:
     // TODO: Worker thread function
     void worker_thread(size_t worker_id) {
         std::cout << "Worker " << worker_id << " started\n";
-        
+
         while (!stop_) {
             Task task;
             if (tasks_.try_pop(task)) {
-                std::cout << "Worker " << worker_id 
-                         << " executing task " << task.id 
+                std::cout << "Worker " << worker_id
+                         << " executing task " << task.id
                          << " (priority " << task.priority << ")\n";
-                
+
                 try {
                     task.work();
                     completed_tasks_++;
                 } catch (const std::exception& e) {
-                    std::cerr << "Task " << task.id << " threw exception: " 
+                    std::cerr << "Task " << task.id << " threw exception: "
                              << e.what() << "\n";
                 }
             } else {
@@ -1940,7 +1976,7 @@ private:
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
             }
         }
-        
+
         std::cout << "Worker " << worker_id << " stopped\n";
     }
 };
@@ -1948,13 +1984,13 @@ private:
 // 4. Test with realistic scenarios
 void test_task_queue() {
     TaskQueue queue(4);  // 4 worker threads
-    
+
     std::cout << "\n=== Submitting tasks ===\n";
-    
+
     // TODO: Submit 20 tasks with random priorities
     for (int i = 0; i < 20; ++i) {
         int priority = rand() % 10;
-        
+
         Task task;
         task.id = i;
         task.priority = priority;
@@ -1963,29 +1999,29 @@ void test_task_queue() {
             std::this_thread::sleep_for(std::chrono::milliseconds(50 + rand() % 100));
             std::cout << "  Task " << i << " (priority " << priority << ") completed\n";
         };
-        
+
         queue.submit(std::move(task));
     }
-    
+
     std::cout << "\n=== Waiting for completion ===\n";
-    
+
     // Wait for all tasks to complete
     while (queue.pending_count() > 0 || queue.completed_count() < 20) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        std::cout << "Pending: " << queue.pending_count() 
+        std::cout << "Pending: " << queue.pending_count()
                  << ", Completed: " << queue.completed_count() << "\n";
     }
-    
+
     std::cout << "\n=== All tasks completed ===\n";
 }
 
 int main() {
     std::cout << "🎯 Multi-threaded Task Queue System\n\n";
-    
+
     test_task_queue();
-    
+
     std::cout << "\n✅ Test complete!\n";
-    
+
     return 0;
 }
 
@@ -2001,16 +2037,19 @@ int main() {
 #### Day 6 (3-4 hours)
 
 1. **Implement ThreadSafePriorityQueue (1 hour)**
+
    - Start with basic queue operations
    - Add priority comparison
    - Test with simple tasks
 
 2. **Basic TaskQueue with simple threads (1.5 hours)**
+
    - Create worker threads
    - Implement submit and worker_thread
    - Test with non-priority tasks
 
 3. **Test with simple tasks (30 mins)**
+
    - Create 10-20 simple tasks
    - Verify they all execute
    - Check for race conditions with TSan
@@ -2022,20 +2061,24 @@ int main() {
 #### Day 7 (3-4 hours)
 
 1. **Add priority handling (1 hour)**
+
    - Verify high-priority tasks execute first
    - Test with mixed priorities
 
 2. **Add statistics tracking (1 hour)**
+
    - Track completed vs total tasks
    - Add timing statistics
    - Print summary at end
 
 3. **Implement graceful shutdown (1 hour)**
+
    - Finish current tasks before stopping
    - Don't accept new tasks during shutdown
    - Join all threads properly
 
 4. **Performance tuning (1 hour)**
+
    - Measure throughput
    - Experiment with thread count
    - Profile with different task types
@@ -2056,9 +2099,9 @@ int main() {
 - [ ] Performance scales with thread count
 - [ ] Handles exceptions in tasks gracefully
 
-**Day 6 Time spent:** ___ hours  
-**Day 7 Time spent:** ___ hours  
-**Total project time:** ___ hours  
+**Day 6 Time spent:** **_ hours  
+**Day 7 Time spent:** _** hours  
+**Total project time:** \_\_\_ hours  
 **Difficulties:**  
 **Questions:**
 
@@ -2067,23 +2110,27 @@ int main() {
 ## Days 8-14: Week 2 Preview
 
 ### Day 8-9: Atomic Operations Basics
+
 - std::atomic<T> fundamentals
 - Lock-free counters
 - Compare-and-swap
 - Basic memory ordering
 
 ### Day 10-11: Condition Variables
+
 - Producer-consumer with blocking
 - Wait, notify_one, notify_all
 - Spurious wakeups
 - Timeouts
 
 ### Day 12-13: Memory Ordering Introduction
+
 - Sequential consistency
 - Acquire-release semantics
 - Understanding the memory model
 
 ### Day 14: Week 1-2 Comprehensive Project
+
 - Build something using everything learned
 - Performance benchmarking
 - Code review and optimization
@@ -2097,11 +2144,13 @@ int main() {
 #### Must-Watch Series
 
 1. **"C++ Concurrency in Action" by Bo Qian**
+
    - https://www.youtube.com/playlist?list=PL5jc9xFGsL8E12so1wlMS0r0hTQoJL74M
    - 17 videos, ~30 mins each
    - Watch 1-2 per day alongside exercises
 
 2. **"C++ Weekly" by Jason Turner - Threading Episodes**
+
    - https://www.youtube.com/c/lefticus1/search?query=thread
    - Short 5-15 min episodes
    - Great for quick clarifications
@@ -2122,6 +2171,7 @@ int main() {
 #### Supplementary
 
 2. **"C++ High Performance" 2nd Edition - Andrist & Sehr**
+
    - Chapter 11 on Concurrency
    - Practical performance-oriented
 
@@ -2134,10 +2184,12 @@ int main() {
 #### Visualizations
 
 1. **ThreadSanitizer Online**: https://godbolt.org/
+
    - Use flags: `-fsanitize=thread -O1`
    - See TSan output immediately
 
 2. **Deadlock Empire**: https://deadlockempire.github.io/
+
    - Game to learn mutexes and deadlocks
    - Play all levels during Week 1-2
 
@@ -2147,6 +2199,7 @@ int main() {
 #### Documentation
 
 1. **CppReference Concurrency**: https://en.cppreference.com/w/cpp/thread
+
    - Bookmark this!
    - Best C++ reference
 
@@ -2175,40 +2228,48 @@ Create `concurrency_progress.md`:
 
 ## Week 1-2: Fundamentals
 
-### Day 1: Thread Basics (Date: ___)
+### Day 1: Thread Basics (Date: \_\_\_)
+
 **Resources Used:**
+
 - [x] CppReference std::thread
 - [x] CppCon 2017: Anthony Williams
 - [x] The Cherno Threading #1
 - [ ] Optional deep dive
 
 **Understanding Check:**
+
 - What happens if thread not joined? ✅ / ❓
 - Why RAII for threads? ✅ / ❓
 - Hardware concurrency meaning? ✅ / ❓
 
 **Exercises Completed:**
+
 - [x] basic_threads.cpp
 - [x] thread_guard.cpp
 
-**Time Spent:** ___ hours (Goal: 3-4)
+**Time Spent:** \_\_\_ hours (Goal: 3-4)
 
 **Key Takeaways:**
-1. 
-2. 
-3. 
+
+1.
+2.
+3.
 
 **Questions for Next Session:**
-1. 
-2. 
+
+1.
+2.
 
 **TSan Findings:**
+
 - Race condition in counter increment
 - [Screenshot or description]
 
 ---
 
-### Day 2: Race Conditions (Date: ___)
+### Day 2: Race Conditions (Date: \_\_\_)
+
 [Same format]
 
 ---
@@ -2222,25 +2283,30 @@ Create `concurrency_progress.md`:
 ## Week 1 Review (Days 1-7)
 
 **Overall Progress:**
+
 - Completed: X/7 days
 - Total time: XX hours
 - Exercises finished: XX/XX
 
 **Strongest Areas:**
-1. 
-2. 
+
+1.
+2.
 
 **Areas Needing Review:**
-1. 
-2. 
+
+1.
+2.
 
 **Next Week Focus:**
-1. 
-2. 
+
+1.
+2.
 
 **Questions Remaining:**
-1. 
-2. 
+
+1.
+2.
 ```
 
 ---
@@ -2250,10 +2316,12 @@ Create `concurrency_progress.md`:
 ### Video Watching Strategy
 
 1. **First Pass (1.25x speed):**
+
    - Get overall understanding
    - Don't pause to code yet
 
 2. **Second Pass (1x speed):**
+
    - Pause and take notes
    - Screenshot important slides
    - Write down questions
@@ -2265,9 +2333,11 @@ Create `concurrency_progress.md`:
 ### Reading Strategy
 
 1. **Skim first** (5 mins)
+
    - Structure and main points
 
 2. **Deep read** (15-20 mins)
+
    - Take notes in own words
    - Draw diagrams
 
@@ -2278,17 +2348,20 @@ Create `concurrency_progress.md`:
 ### Daily Routine
 
 **Morning (Theory - 1.5 hours):**
+
 1. CppReference (15-20 mins)
 2. One article (20-25 mins)
 3. Video at 1.25-1.5x (25-30 mins)
 4. Take notes (15-20 mins)
 
 **Afternoon (Hands-On - 2-2.5 hours):**
+
 1. First exercise (45-60 mins)
 2. Second exercise (45-60 mins)
 3. Experiment (30 mins)
 
 **Evening (Optional - 30 mins):**
+
 1. Supplementary video
 2. Additional articles
 3. Bonus exercises
@@ -2305,6 +2378,7 @@ If different resources give different advice:
 4. **Ask me** with specific examples
 
 **Example:**
+
 > "Video X says to use pthread_create, but article Y uses std::thread. Which?"
 > Answer: std::thread (C++11+), pthread is C API
 
@@ -2313,6 +2387,7 @@ If different resources give different advice:
 ## 🎓 Quality Resource Indicators
 
 ### ✅ High Quality
+
 - CppCon/C++Now talks
 - CppReference documentation
 - "C++ Concurrency in Action" book
@@ -2320,11 +2395,13 @@ If different resources give different advice:
 - Anthony Williams, Herb Sutter, Scott Meyers
 
 ### ⚠️ Use with Caution
+
 - Random blog posts (verify)
 - StackOverflow (read multiple answers)
 - Old content (pre-C++11)
 
 ### ❌ Avoid
+
 - pthread directly (use std::thread)
 - Windows-specific APIs (use standard)
 - Pre-C++11 approaches
@@ -2344,6 +2421,7 @@ If different resources give different advice:
 ### When You Need Help
 
 Contact me when you:
+
 1. Don't understand WHY (not just HOW)
 2. Can't interpret TSan output
 3. Hit a deadlock you can't debug
